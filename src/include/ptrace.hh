@@ -8,7 +8,7 @@ public:
 	class IBreakpointListener
 	{
 	public:
-		virtual void onBreak(void *instructionAddr) = 0;
+		virtual void onBreak(int id, void *instructionAddr) = 0;
 	};
 
 	static IPtrace &getInstance();
@@ -17,9 +17,16 @@ public:
 	virtual bool readMemory(uint8_t *dst, void *start, size_t bytes) = 0;
 
 
-	virtual bool setBreakpoint(void *addr) = 0;
+	/**
+	 * Set a breakpoint
+	 *
+	 * @param addr the address to set the breakpoint on
+	 *
+	 * @return the ID of the breakpoint, or -1 on failure
+	 */
+	virtual int setBreakpoint(void *addr) = 0;
 
-	virtual bool clearBreakpoint(void *addr) = 0;
+	virtual bool clearBreakpoint(int id) = 0;
 
 
 	/**
