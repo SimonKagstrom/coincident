@@ -15,8 +15,6 @@ public:
 		ud_init(&m_ud);
 
 		ud_set_user_opaque_data(&m_ud, (void *)this);
-		ud_set_input_hook(&m_ud, next_byte);
-
 		ud_set_mode(&m_ud, 32);
 
 		m_data = NULL;
@@ -36,6 +34,8 @@ public:
 		m_data = data;
 		m_dataSize = size;
 		m_count = 0;
+
+		ud_set_input_hook(&m_ud, next_byte);
 
 		while (ud_disassemble(&m_ud)) {
 			bool mem = (m_ud.operand[0].type == UD_OP_MEM ||
