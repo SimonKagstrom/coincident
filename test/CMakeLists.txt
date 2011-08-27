@@ -7,10 +7,17 @@ cmake_minimum_required (VERSION 2.6)
 project (ut)
 set (TGT ut)
 
+set (TEST_ELF test-elf)
+set (${TEST_ELF}_SRCS
+	binary-build.c
+)
+
 set (${TGT}_SRCS
     ../src/disassembly.cc
+    ../src/elf.cc
     main.cc
     tests-disassembly.cc
+    tests-elf.cc
     )
 set (CMAKE_BUILD_TYPE debug)
 
@@ -19,6 +26,8 @@ include_directories (../src/include/)
 include_directories (/home/ska/local/include)
 link_directories (/home/ska/local/lib)
 
-add_executable (${PROJECT_NAME} ${${TGT}_SRCS})
+add_executable (${TEST_ELF} ${${TEST_ELF}_SRCS})
 
-target_link_libraries(${TGT} crpcut udis86)
+add_executable (${TGT} ${${TGT}_SRCS})
+
+target_link_libraries(${TGT} crpcut udis86 elf gmock gtest)
