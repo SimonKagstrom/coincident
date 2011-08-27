@@ -13,7 +13,8 @@ set (PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJEC
 set (TGT race-condition-finder)
 
 set (${TGT}_SRCS
-    src/disassembly.cc
+	src/disassembly.cc
+	src/elf.cc
     )
 
 include_directories (${GLIB2_INCLUDE_DIRS})
