@@ -4,11 +4,21 @@
 #include <string.h>
 #include <stdio.h>
 
+#define error(x...) do \
+{ \
+	fprintf(stderr, "Error: "); \
+	fprintf(stderr, x); \
+} while(0)
+
+#define warning(x...) do \
+{ \
+	fprintf(stderr, "Warning: "); \
+	fprintf(stderr, x); \
+} while(0)
+
 #define panic(x...) do \
 { \
-	fprintf(stderr, "============panic===========\n"); \
-	fprintf(stderr, x); \
-	fprintf(stderr, "============================\n"); \
+	error(x); \
 	exit(1); \
 } while(0)
 
