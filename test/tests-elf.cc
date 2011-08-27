@@ -92,4 +92,7 @@ TEST(elffile)
 
 	ASSERT_TRUE(listener.m_map[std::string("vobb")] > 0);
 	ASSERT_TRUE(listener.m_map[std::string("mibb")] > 0);
+
+	ASSERT_NE(elf.functionByName("vobb"), 0);
+	ASSERT_EQ(elf.functionByName("vobb2"), 0);
 }
