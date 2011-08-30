@@ -18,7 +18,7 @@ public:
 	class PtraceEvent
 	{
 	public:
-		ptrace_event_type type;
+		enum ptrace_event_type type;
 
 		int eventId; // Typically the breakpoint
 		void *addr;
