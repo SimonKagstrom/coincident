@@ -13,8 +13,10 @@ set (PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJEC
 set (TGT race-condition-finder)
 
 set (${TGT}_SRCS
+	src/controller.cc
 	src/disassembly.cc
 	src/elf.cc
+	src/ptrace.cc
     )
 
 include_directories (${GLIB2_INCLUDE_DIRS})
@@ -24,4 +26,4 @@ link_directories (/home/ska/local/lib)
 
 add_executable (${PROJECT_NAME} ${${TGT}_SRCS})
 
-target_link_libraries(${TGT} ${glib2_LIBRARIES} udis86)
+target_link_libraries(${TGT} ${glib2_LIBRARIES} udis86 elf)
