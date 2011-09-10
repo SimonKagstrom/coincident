@@ -8,13 +8,17 @@ class IController
 public:
 	class IProcessSelector
 	{
+	public:
 		virtual int selectProcess(int curProcess,
+				int nProcesses,
 				uint64_t timeUs,
-				IPtrace::PtraceEvent *) = 0;
+				const IPtrace::PtraceEvent *) = 0;
 	};
 
 
 	static IController &getInstance();
+
+	virtual void setProcessSelector(IProcessSelector *selector) = 0;
 
 
 	virtual bool addThread(int (*fn)(void *), void *priv) = 0;

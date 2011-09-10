@@ -3,7 +3,21 @@
 #include <utils.hh>
 
 #include <stdlib.h>
+#include <sys/time.h>
 #include <map>
+
+class DefaultProcessSelector : public IController::IProcessSelector
+{
+public:
+	int selectProcess(int curProcess,
+			int nProcesses,
+			uint64_t timeUs,
+			const IPtrace::PtraceEvent *ev)
+	{
+		return rand() % nProcesses;
+	}
+};
+
 
 class Controller : public IController
 {
@@ -11,12 +25,24 @@ public:
 	Controller()
 	{
 		m_processes = NULL;
+
+		m_selector = new DefaultProcessSelector();
+		m_startTimeStamp = getTimeStamp(0);
 	}
 
 	~Controller()
 	{
 		cleanup();
 	}
+
+	void setProcessSelector(IProcessSelector *selector)
+	{
+		if (m_selector)
+			delete m_selector;
+
+		m_selector = selector;
+	}
+
 
 	bool addThread(int (*fn)(void *), void *priv)
 	{
@@ -54,6 +80,8 @@ public:
 			}
 			else {
 				// Parent
+				m_startTimeStamp = getTimeStamp(0);
+
 				runChild(pid);
 			}
 
@@ -97,6 +125,9 @@ private:
 		for (int i = 0; i < m_nProcesses; i++)
 			delete m_processes[i];
 
+		if (m_selector)
+			delete m_selector;
+
 		free(m_processes);
 	}
 
@@ -115,6 +146,8 @@ private:
 
 			case ptrace_breakpoint:
 			case ptrace_syscall:
+				pid = m_selector->selectProcess(pid, m_nProcesses,
+						getTimeStamp(m_startTimeStamp), &ev);
 				break;
 			}
 		}
@@ -122,8 +155,20 @@ private:
 		return true;
 	}
 
+	uint64_t getTimeStamp(uint64_t start)
+	{
+		struct timeval tv;
+
+		gettimeofday(&tv, NULL);
+
+		return (tv.tv_usec + tv.tv_sec * 1000 * 1000) - start;
+	}
+
 	int m_nProcesses;
 	Process **m_processes;
+	IProcessSelector *m_selector;
+
+	uint64_t m_startTimeStamp;
 
 	int m_runLimit;
 
