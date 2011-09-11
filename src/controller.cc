@@ -106,6 +106,16 @@ private:
 		Process(int (*fn)(void *), void *priv) :
 			m_fn(fn), m_priv(priv)
 		{
+			/* Plenty of stack */
+			size_t stack_sz = 8 * 1024 * 1024;
+			m_stackStart = (uint8_t *)xmalloc(stack_sz);
+
+			m_stack = (void *)(m_stackStart + stack_sz - 8);
+		}
+
+		~Process()
+		{
+			free(m_stackStart);
 		}
 
 		void setPid(int pid)
@@ -117,6 +127,9 @@ private:
 		void *m_priv;
 
 		int m_pid;
+
+		void *m_stack;
+		uint8_t *m_stackStart;
 	};
 
 
