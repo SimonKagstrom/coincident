@@ -52,6 +52,9 @@ TEST(controllerRunChild)
 		.Times(AtLeast(1))
 		.WillRepeatedly(Return(ev));
 
+	// Add two threads
 	controller.addThread(test_thread, NULL);
+	controller.addThread(test_thread, NULL);
+
 	controller.run();
 }
