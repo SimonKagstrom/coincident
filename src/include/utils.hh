@@ -33,3 +33,13 @@ static inline char *xstrdup(const char *s)
 
 	return out;
 }
+
+static inline void *xmalloc(size_t sz)
+{
+  void *out = malloc(sz);
+
+  panic_if(!out, "malloc failed");
+  memset(out, 0, sz);
+
+  return out;
+}
