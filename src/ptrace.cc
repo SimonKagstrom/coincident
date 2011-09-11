@@ -6,6 +6,7 @@
 #include <sys/user.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sched.h>
 #include <map>
 #include <list>
 
@@ -63,6 +64,16 @@ public:
 		m_children.push_back(child);
 
 		return child;
+	}
+
+	int cloneAndAttach(int (*fn)(void *), void *priv, void *stack)
+	{
+		/* Create a thread */
+		return clone(fn, stack,
+				CLONE_FILES | CLONE_FS | CLONE_IO | CLONE_NEWIPC | CLONE_NEWNET |
+				CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWUTS | CLONE_PTRACE |
+				CLONE_THREAD | CLONE_VM,
+				priv);
 	}
 
 	int setBreakpoint(void *addr)

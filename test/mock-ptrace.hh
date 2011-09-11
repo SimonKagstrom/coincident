@@ -12,6 +12,7 @@ public:
 	MOCK_METHOD1(setBreakpoint, int(void *addr));
 	MOCK_METHOD1(clearBreakpoint, bool(int id));
 	MOCK_METHOD0(forkAndAttach, int());
+	MOCK_METHOD3(cloneAndAttach, int(int (*fn)(void *), void *priv, void *stack));
 	MOCK_METHOD1(singleStep, void(int pid));
 	MOCK_METHOD1(continueExecution, const PtraceEvent(int pid));
 };

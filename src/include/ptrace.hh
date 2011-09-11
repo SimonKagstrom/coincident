@@ -49,6 +49,18 @@ public:
 	virtual int forkAndAttach() = 0;
 
 	/**
+	 * Clone a new thread and make it traced
+	 *
+	 * @param fn the function to execute when the thread starts
+	 * @param priv function-private data
+	 * @param stack a pointer to the top-of-stack
+	 *
+	 * @return the thread id of the new thread, or -1 on error
+	 */
+	virtual int cloneAndAttach(int (*fn)(void *),
+			void *priv, void *stack) = 0;
+
+	/**
 	 * Step over to the next instruction.
 	 *
 	 * Does not invoke the breakpoint listener
