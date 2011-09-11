@@ -4,6 +4,8 @@
 
 #include <stdlib.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <map>
 
 class DefaultProcessSelector : public IController::IProcessSelector
@@ -63,6 +65,7 @@ public:
 		bool should_quit = false;
 
 		while (!should_quit) {
+			IPtrace &ptrace = IPtrace::getInstance();
 			/* Fork the parent process of all test threads. All
 			 * other threads will be threads running in this
 			 * context.
@@ -70,13 +73,21 @@ public:
 			 * For each round in the test, this is forked again
 			 * to retain the original memory state.
 			 */
-			int pid = IPtrace::getInstance().forkAndAttach();
+			int pid = ptrace.forkAndAttach();
 
 			if (pid < 0) {
 				error("fork failed\n");
 				return false;
 			} else if (pid == 0) {
 				// Child
+				for (int i = 0; i < m_nProcesses; i++) {
+					Process *cur = m_processes[i];
+					int id = ptrace.cloneAndAttach(cur->m_fn, cur->m_priv, cur->m_stack);
+
+					cur->setPid(id);
+				}
+
+				waitpid(-1, 0, WEXITED);
 			}
 			else {
 				// Parent
@@ -129,6 +140,7 @@ private:
 		int m_pid;
 
 		void *m_stack;
+	private:
 		uint8_t *m_stackStart;
 	};
 
