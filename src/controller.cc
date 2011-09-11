@@ -148,11 +148,15 @@ private:
 			case ptrace_syscall:
 				pid = m_selector->selectProcess(pid, m_nProcesses,
 						getTimeStamp(m_startTimeStamp), &ev);
-				break;
+				return true;
+
+			default:
+				return false;
 			}
 		}
 
-		return true;
+		/* Unreachable */
+		return false;
 	}
 
 	uint64_t getTimeStamp(uint64_t start)
