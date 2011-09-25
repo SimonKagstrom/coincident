@@ -64,65 +64,65 @@ public:
 	{
 		bool should_quit = false;
 
-		while (!should_quit) {
-			IPtrace &ptrace = IPtrace::getInstance();
-			/* Fork the parent process of all test threads. All
-			 * other threads will be threads running in this
-			 * context.
-			 *
-			 * For each round in the test, this is forked again
-			 * to retain the original memory state.
-			 */
-			int pid = ptrace.forkAndAttach();
+		IPtrace &ptrace = IPtrace::getInstance();
+		/* Fork the parent process of all test threads. All
+		 * other threads will be threads running in this
+		 * context.
+		 *
+		 * For each round in the test, this is forked again
+		 * to retain the original memory state.
+		 */
+		int pid = ptrace.forkAndAttach();
 
-			if (pid < 0) {
-				error("fork failed\n");
-				return false;
-			} else if (pid == 0) {
-				// Child
-				for (int i = 0; i < m_nProcesses; i++) {
-					Process *cur = m_processes[i];
-					int id = ptrace.cloneAndAttach(cur->m_fn, cur->m_priv, cur->m_stack);
+		if (pid < 0) {
+			error("fork failed\n");
+			return false;
+		} else if (pid == 0) {
+			// Child
+			for (int i = 0; i < m_nProcesses; i++) {
+				Process *cur = m_processes[i];
+				int id = ptrace.cloneAndAttach(cur->m_fn, cur->m_priv, cur->m_stack);
 
-					cur->setPid(id);
+				cur->setPid(id);
+			}
+
+			int exitCode = 0;
+
+			do {
+				pid_t which;
+				int status;
+				int i;
+
+				which = waitpid(-1, &status, WEXITED);
+
+				for (i = 0; i < m_nProcesses; i++) {
+					if (m_processes[i]->getPid() == which)
+						m_processes[i]->exit(status);
 				}
 
-				int exitCode = 0;
+				if (status > exitCode)
+					exitCode = status;
 
-				do {
-					pid_t which;
-					int status;
-					int i;
-
-					which = waitpid(-1, &status, WEXITED);
-
-					for (i = 0; i < m_nProcesses; i++) {
-						if (m_processes[i]->getPid() == which)
-							m_processes[i]->exit(status);
-					}
-
-					if (status > exitCode)
-						exitCode = status;
-
-					// Done if there are no processes left running
-					for (i = 0; i < m_nProcesses; i++) {
-						if (!m_processes[i]->hasExited())
-							break;
-					}
-					if (i == m_nProcesses)
+				// Done if there are no processes left running
+				for (i = 0; i < m_nProcesses; i++) {
+					if (!m_processes[i]->hasExited())
 						break;
-				} while (1);
+				}
+				if (i == m_nProcesses)
+					break;
+			} while (1);
 
-				exit(exitCode);
-			}
-			else {
-				// Parent
-				m_startTimeStamp = getTimeStamp(0);
+			exit(exitCode);
+		}
+		else {
+			bool should_quit;
 
-				runChild(pid);
-			}
+			// Parent
+			m_startTimeStamp = getTimeStamp(0);
 
-			// FIXME: Set should_quit...
+			do {
+				should_quit = runChild(pid);
+			} while (!should_quit);
 		}
 
 		return true;
