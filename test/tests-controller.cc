@@ -43,14 +43,19 @@ TEST(controllerRunChild)
 		.Times(AtLeast(1))
 		.WillRepeatedly(Return(100));
 
-	IPtrace::PtraceEvent ev;
+	IPtrace::PtraceEvent ev, evDefault;
+
+	evDefault.type = ptrace_exit;
+	evDefault.eventId = 0;
 
 	ev.type = ptrace_breakpoint;
 	ev.eventId = 100;
 	ev.addr = NULL;
+
 	EXPECT_CALL(ptrace, continueExecution(_))
 		.Times(AtLeast(1))
-		.WillRepeatedly(Return(ev));
+		.WillOnce(Return(ev))
+		.WillRepeatedly(Return(evDefault));
 
 	// Add two threads
 	controller.addThread(test_thread, NULL);
