@@ -87,7 +87,33 @@ public:
 					cur->setPid(id);
 				}
 
-				waitpid(-1, 0, WEXITED);
+				int exitCode = 0;
+
+				do {
+					pid_t which;
+					int status;
+					int i;
+
+					which = waitpid(-1, &status, WEXITED);
+
+					for (i = 0; i < m_nProcesses; i++) {
+						if (m_processes[i]->getPid() == which)
+							m_processes[i]->exit(status);
+					}
+
+					if (status > exitCode)
+						exitCode = status;
+
+					// Done if there are no processes left running
+					for (i = 0; i < m_nProcesses; i++) {
+						if (!m_processes[i]->hasExited())
+							break;
+					}
+					if (i == m_nProcesses)
+						break;
+				} while (1);
+
+				exit(exitCode);
 			}
 			else {
 				// Parent
@@ -115,7 +141,7 @@ private:
 	{
 	public:
 		Process(int (*fn)(void *), void *priv) :
-			m_fn(fn), m_priv(priv)
+			m_fn(fn), m_priv(priv), m_pid(0), m_exitCode(-1)
 		{
 			/* Plenty of stack */
 			size_t stack_sz = 8 * 1024 * 1024;
@@ -129,18 +155,34 @@ private:
 			free(m_stackStart);
 		}
 
+		void exit(int status)
+		{
+			m_exitCode = status;
+		}
+
+		bool hasExited()
+		{
+			return m_exitCode != -1;
+		}
+
 		void setPid(int pid)
 		{
 			m_pid = pid;
 		}
 
+		pid_t getPid()
+		{
+			return m_pid;
+		}
+
 		int (*m_fn)(void *);
 		void *m_priv;
 
-		int m_pid;
-
 		void *m_stack;
 	private:
+		pid_t m_pid;
+		int m_exitCode;
+
 		uint8_t *m_stackStart;
 	};
 
