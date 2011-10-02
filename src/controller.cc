@@ -98,11 +98,17 @@ public:
 				int status;
 				int i;
 
-				which = waitpid(-1, &status, WEXITED);
+				which = waitpid(-1, &status, 0);
+				if (which < 0) {
+					error("cloned thread waitpid failed\n");
+					exit(124);
+				}
+				if (!WIFEXITED(status))
+					continue;
 
 				for (i = 0; i < m_nProcesses; i++) {
 					if (m_processes[i]->getPid() == which)
-						m_processes[i]->exit(status);
+						m_processes[i]->exit(WEXITSTATUS(status));
 				}
 
 				if (status > exitCode)
