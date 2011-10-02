@@ -146,10 +146,42 @@ public:
 	const PtraceEvent continueExecution(int pid)
 	{
 		PtraceEvent out;
+		int status;
+		int who;
 
+		// Assume error
 		out.type = ptrace_error;
 		out.eventId = -1;
 		out.addr = NULL;
+
+		ptrace(PTRACE_CONT, pid, 0, 0);
+
+		who = waitpid(pid, &status, __WALL);
+		if (who == -1)
+			return out;
+
+		// A signal?
+		if (WIFSTOPPED(status)) {
+			// A trap?
+			if (WSTOPSIG(status) == SIGTRAP) {
+				out.type = ptrace_breakpoint;
+				out.eventId = -1;
+				out.addr = NULL; // FIXME!
+
+				return out;
+			}
+			// No, deliver it directly
+			ptrace(PTRACE_CONT, who, 0, WSTOPSIG(status));
+		}
+		// Thread died?
+		if (WIFSIGNALED(status) || WIFEXITED(status)) {
+			if (who == pid) {
+				out.type = ptrace_exit;
+				out.eventId = -1;
+				out.addr = NULL;
+				return out;
+			}
+		}
 
 		return out;
 	}
