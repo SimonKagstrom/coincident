@@ -71,9 +71,8 @@ public:
 	{
 		/* Create a thread */
 		return clone(fn, stack,
-				CLONE_FILES | CLONE_FS | CLONE_IO | CLONE_NEWIPC | CLONE_NEWNET |
-				CLONE_NEWNS | CLONE_NEWPID | CLONE_NEWUTS | CLONE_PTRACE |
-				CLONE_THREAD | CLONE_VM,
+				CLONE_FILES | CLONE_FS | CLONE_IO | CLONE_PTRACE | CLONE_VM |
+				SIGCHLD,
 				priv);
 	}
 
