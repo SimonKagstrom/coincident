@@ -121,7 +121,7 @@ public:
 			m_startTimeStamp = getTimeStamp(0);
 
 			do {
-				should_quit = runChild(pid);
+				should_quit = !runChild(pid);
 			} while (!should_quit);
 		}
 
