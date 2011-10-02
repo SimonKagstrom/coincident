@@ -45,7 +45,7 @@ public:
 				error("Can't set me as ptraced");
 				return -1;
 			}
-			kill(getpid(), SIGUSR1);
+			kill(getpid(), SIGSTOP);
 
 			return 0;
 		}
