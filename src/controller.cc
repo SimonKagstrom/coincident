@@ -83,6 +83,11 @@ public:
 				Process *cur = m_processes[i];
 				int id = ptrace.cloneAndAttach(cur->m_fn, cur->m_priv, cur->m_stack);
 
+				if (id < 0) {
+					error("Ptrace clone failed\n");
+					exit(125);
+				}
+
 				cur->setPid(id);
 			}
 
