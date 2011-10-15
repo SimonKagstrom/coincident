@@ -17,6 +17,7 @@ set (${TGT}_SRCS
     ../src/disassembly.cc
     ../src/elf.cc
     main.cc
+    mock-thread.cc
     tests-controller.cc
     tests-disassembly.cc
     tests-elf.cc
