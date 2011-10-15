@@ -1,6 +1,7 @@
 #include <controller.hh>
 #include <ptrace.hh>
 #include <utils.hh>
+#include <thread.hh>
 
 #include <stdlib.h>
 #include <sys/time.h>
@@ -21,7 +22,7 @@ public:
 };
 
 
-class Controller : public IController
+class Controller : public IController, IThread::IThreadExitListener
 {
 public:
 	Controller()
@@ -37,6 +38,16 @@ public:
 		cleanup();
 	}
 
+
+	// Thread exit handler from the IThreadExitListener class
+	void threadExit(IThread &thread)
+	{
+		// Do something
+		printf("Thread exited\n");
+		IThread::releaseThread(thread);
+	}
+
+
 	void setProcessSelector(IProcessSelector *selector)
 	{
 		if (m_selector)
@@ -51,11 +62,11 @@ public:
 		int cur = m_nProcesses;
 
 		m_nProcesses++;
-		m_processes = (Process **)realloc(m_processes,
-				m_nProcesses * sizeof(Process*));
+		m_processes = (IThread **)realloc(m_processes,
+				m_nProcesses * sizeof(IThread *));
 
 		// Add the process to the list
-		m_processes[cur] = new Process(fn, priv);
+		m_processes[cur] = &IThread::createThread(*this, fn, priv);
 
 		return true;
 	}
@@ -78,52 +89,8 @@ public:
 			error("fork failed\n");
 			return false;
 		} else if (pid == 0) {
-			// Child
-			for (int i = 0; i < m_nProcesses; i++) {
-				Process *cur = m_processes[i];
-				int id = ptrace.cloneAndAttach(cur->m_fn, cur->m_priv, cur->m_stack);
-
-				if (id < 0) {
-					error("Ptrace clone failed\n");
-					exit(125);
-				}
-
-				cur->setPid(id);
-			}
-
-			int exitCode = 0;
-
-			do {
-				pid_t which;
-				int status;
-				int i;
-
-				which = waitpid(-1, &status, 0);
-				if (which < 0) {
-					error("cloned thread waitpid failed\n");
-					exit(124);
-				}
-				if (!WIFEXITED(status))
-					continue;
-
-				for (i = 0; i < m_nProcesses; i++) {
-					if (m_processes[i]->getPid() == which)
-						m_processes[i]->exit(WEXITSTATUS(status));
-				}
-
-				if (status > exitCode)
-					exitCode = status;
-
-				// Done if there are no processes left running
-				for (i = 0; i < m_nProcesses; i++) {
-					if (!m_processes[i]->hasExited())
-						break;
-				}
-				if (i == m_nProcesses)
-					break;
-			} while (1);
-
-			exit(exitCode);
+			// Hmm... Not sure what to do here
+			exit(0);
 		}
 		else {
 			bool should_quit;
@@ -148,60 +115,11 @@ public:
 	}
 
 private:
-	class Process
-	{
-	public:
-		Process(int (*fn)(void *), void *priv) :
-			m_fn(fn), m_priv(priv), m_pid(0), m_exitCode(-1)
-		{
-			/* Plenty of stack */
-			size_t stack_sz = 8 * 1024 * 1024;
-			m_stackStart = (uint8_t *)xmalloc(stack_sz);
-
-			m_stack = (void *)(m_stackStart + stack_sz - 8);
-		}
-
-		~Process()
-		{
-			free(m_stackStart);
-		}
-
-		void exit(int status)
-		{
-			m_exitCode = status;
-		}
-
-		bool hasExited()
-		{
-			return m_exitCode != -1;
-		}
-
-		void setPid(int pid)
-		{
-			m_pid = pid;
-		}
-
-		pid_t getPid()
-		{
-			return m_pid;
-		}
-
-		int (*m_fn)(void *);
-		void *m_priv;
-
-		void *m_stack;
-	private:
-		pid_t m_pid;
-		int m_exitCode;
-
-		uint8_t *m_stackStart;
-	};
-
 
 	void cleanup()
 	{
 		for (int i = 0; i < m_nProcesses; i++)
-			delete m_processes[i];
+			IThread::releaseThread(*m_processes[i]);
 
 		if (m_selector)
 			delete m_selector;
@@ -247,7 +165,7 @@ private:
 	}
 
 	int m_nProcesses;
-	Process **m_processes;
+	IThread **m_processes;
 	IProcessSelector *m_selector;
 
 	uint64_t m_startTimeStamp;
