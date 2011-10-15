@@ -9,15 +9,15 @@
 #include <sys/wait.h>
 #include <map>
 
-class DefaultProcessSelector : public IController::IProcessSelector
+class DefaultThreadSelector : public IController::IThreadSelector
 {
 public:
-	int selectProcess(int curProcess,
-			int nProcesses,
+	int selectThread(int curThread,
+			int nThreads,
 			uint64_t timeUs,
 			const IPtrace::PtraceEvent *ev)
 	{
-		return rand() % nProcesses;
+		return rand() % nThreads;
 	}
 };
 
@@ -27,9 +27,9 @@ class Controller : public IController, IThread::IThreadExitListener
 public:
 	Controller()
 	{
-		m_processes = NULL;
+		m_threads = NULL;
 
-		m_selector = new DefaultProcessSelector();
+		m_selector = new DefaultThreadSelector();
 		m_startTimeStamp = getTimeStamp(0);
 	}
 
@@ -48,7 +48,7 @@ public:
 	}
 
 
-	void setProcessSelector(IProcessSelector *selector)
+	void setThreadSelector(IThreadSelector *selector)
 	{
 		if (m_selector)
 			delete m_selector;
@@ -59,14 +59,14 @@ public:
 
 	bool addThread(int (*fn)(void *), void *priv)
 	{
-		int cur = m_nProcesses;
+		int cur = m_nThreads;
 
-		m_nProcesses++;
-		m_processes = (IThread **)realloc(m_processes,
-				m_nProcesses * sizeof(IThread *));
+		m_nThreads++;
+		m_threads = (IThread **)realloc(m_threads,
+				m_nThreads * sizeof(IThread *));
 
-		// Add the process to the list
-		m_processes[cur] = &IThread::createThread(*this, fn, priv);
+		// Add the thread to the list
+		m_threads[cur] = &IThread::createThread(*this, fn, priv);
 
 		return true;
 	}
@@ -118,13 +118,13 @@ private:
 
 	void cleanup()
 	{
-		for (int i = 0; i < m_nProcesses; i++)
-			IThread::releaseThread(*m_processes[i]);
+		for (int i = 0; i < m_nThreads; i++)
+			IThread::releaseThread(*m_threads[i]);
 
 		if (m_selector)
 			delete m_selector;
 
-		free(m_processes);
+		free(m_threads);
 	}
 
 	bool runChild(int pid)
@@ -142,7 +142,7 @@ private:
 
 			case ptrace_breakpoint:
 			case ptrace_syscall:
-				pid = m_selector->selectProcess(pid, m_nProcesses,
+				pid = m_selector->selectThread(pid, m_nThreads,
 						getTimeStamp(m_startTimeStamp), &ev);
 				return true;
 
@@ -164,9 +164,9 @@ private:
 		return (tv.tv_usec + tv.tv_sec * 1000 * 1000) - start;
 	}
 
-	int m_nProcesses;
-	IThread **m_processes;
-	IProcessSelector *m_selector;
+	int m_nThreads;
+	IThread **m_threads;
+	IThreadSelector *m_selector;
 
 	uint64_t m_startTimeStamp;
 

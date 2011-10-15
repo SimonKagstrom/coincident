@@ -6,11 +6,11 @@
 class IController
 {
 public:
-	class IProcessSelector
+	class IThreadSelector
 	{
 	public:
-		virtual int selectProcess(int curProcess,
-				int nProcesses,
+		virtual int selectThread(int curThread,
+				int nThreads,
 				uint64_t timeUs,
 				const IPtrace::PtraceEvent *) = 0;
 	};
@@ -18,7 +18,7 @@ public:
 
 	static IController &getInstance();
 
-	virtual void setProcessSelector(IProcessSelector *selector) = 0;
+	virtual void setThreadSelector(IThreadSelector *selector) = 0;
 
 
 	virtual bool addThread(int (*fn)(void *), void *priv) = 0;
