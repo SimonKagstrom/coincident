@@ -67,15 +67,6 @@ public:
 		return child;
 	}
 
-	int cloneAndAttach(int (*fn)(void *), void *priv, void *stack)
-	{
-		/* Create a thread */
-		return clone(fn, stack,
-				CLONE_FILES | CLONE_FS | CLONE_IO | CLONE_PTRACE | CLONE_VM |
-				SIGCHLD,
-				priv);
-	}
-
 	int setBreakpoint(void *addr)
 	{
 		uint8_t data;
@@ -126,6 +117,16 @@ public:
 			writeByte(*iter, addr, m_instructionMap[addr]);
 
 		return true;
+	}
+
+	void saveRegisters(int pid, void *regs)
+	{
+		ptrace(PTRACE_GETREGS, pid, 0, regs);
+	}
+
+	void loadRegisters(int pid, void *regs)
+	{
+		ptrace(PTRACE_SETREGS, pid, 0, regs);
 	}
 
 	void singleStep(int pid)
