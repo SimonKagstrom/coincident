@@ -30,6 +30,8 @@ public:
 	Controller()
 	{
 		m_threads = NULL;
+		m_nThreads = 0;
+		m_curThread = 0;
 
 		m_selector = new DefaultThreadSelector();
 		m_startTimeStamp = getTimeStamp(0);
@@ -124,16 +126,16 @@ public:
 			}
 
 			// Select an initial thread and load its registers
-			int thread = m_selector->selectThread(0, m_nThreads,
+			m_curThread = m_selector->selectThread(0, m_nThreads,
 						getTimeStamp(m_startTimeStamp), NULL);
 
-			void *regs = m_threads[thread]->getRegs();
+			void *regs = m_threads[m_curThread]->getRegs();
 			IPtrace::getInstance().loadRegisters(pid, regs);
 
 			m_startTimeStamp = getTimeStamp(0);
 
 			do {
-				should_quit = !runChild(pid, thread);
+				should_quit = !runChild(pid);
 			} while (!should_quit);
 		}
 
@@ -161,7 +163,7 @@ private:
 		free(m_threads);
 	}
 
-	bool runChild(int pid, int thread)
+	bool runChild(int pid)
 	{
 		IPtrace &ptrace = IPtrace::getInstance();
 
@@ -180,15 +182,15 @@ private:
 				// Step to next instruction
 				ptrace.singleStep(pid);
 
-				nextThread = m_selector->selectThread(thread, m_nThreads,
+				nextThread = m_selector->selectThread(m_curThread, m_nThreads,
 						getTimeStamp(m_startTimeStamp), &ev);
 
 				// Perform the actual thread switch
-				if (nextThread != thread) {
-					ptrace.saveRegisters(pid, m_threads[thread]->getRegs());
+				if (nextThread != m_curThread) {
+					ptrace.saveRegisters(pid, m_threads[m_curThread]->getRegs());
 					ptrace.loadRegisters(pid, m_threads[nextThread]->getRegs());
 
-					thread = nextThread;
+					m_curThread = nextThread;
 				}
 
 				return true;
@@ -218,6 +220,7 @@ private:
 	int m_nThreads;
 	IThread **m_threads;
 	IThreadSelector *m_selector;
+	int m_curThread;
 
 	functionMap_t m_functions;
 	functionBreakpointMap_t m_functionBreakpoints;
