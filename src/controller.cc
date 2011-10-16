@@ -1,7 +1,9 @@
 #include <controller.hh>
 #include <ptrace.hh>
 #include <utils.hh>
+#include <elf.hh>
 #include <thread.hh>
+#include <function.hh>
 
 #include <stdlib.h>
 #include <sys/time.h>
@@ -22,7 +24,7 @@ public:
 };
 
 
-class Controller : public IController, IThread::IThreadExitListener
+class Controller : public IController, IThread::IThreadExitListener, IElf::IFunctionListener
 {
 public:
 	Controller()
@@ -31,6 +33,10 @@ public:
 
 		m_selector = new DefaultThreadSelector();
 		m_startTimeStamp = getTimeStamp(0);
+
+		IElf &elf = IElf::getInstance();
+
+		elf.setFile(this, "/proc/self/exe");
 	}
 
 	virtual ~Controller()
@@ -38,6 +44,11 @@ public:
 		cleanup();
 	}
 
+
+	void onFunction(IFunction &fn)
+	{
+		m_functions[fn.getEntry()] = &fn;
+	}
 
 	// Thread exit handler from the IThreadExitListener class
 	void threadExit(IThread &thread)
@@ -95,6 +106,22 @@ public:
 		else {
 			// Parent
 			bool should_quit;
+
+			// Setup function breakpoints
+			for (functionMap_t::iterator it = m_functions.begin();
+					it != m_functions.end(); it++) {
+				IFunction *cur = it->second;
+
+				if (cur->getSize() == 0)
+					continue;
+
+				int id = cur->setupEntryBreakpoint();
+
+				if (id < 0)
+					continue;
+
+				m_functionBreakpoints[id] = cur;
+			}
 
 			// Select an initial thread and load its registers
 			int thread = m_selector->selectThread(0, m_nThreads,
@@ -184,14 +211,20 @@ private:
 		return (tv.tv_usec + tv.tv_sec * 1000 * 1000) - start;
 	}
 
+	typedef std::map<void *, IFunction *> functionMap_t;
+	typedef std::map<int, IFunction *> functionBreakpointMap_t;
+
+
 	int m_nThreads;
 	IThread **m_threads;
 	IThreadSelector *m_selector;
 
+	functionMap_t m_functions;
+	functionBreakpointMap_t m_functionBreakpoints;
+
 	uint64_t m_startTimeStamp;
 
 	int m_runLimit;
-
 };
 
 IController &IController::getInstance()
