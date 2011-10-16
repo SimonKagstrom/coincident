@@ -11,12 +11,15 @@ set (PROJECT_VERSION_PATCH  0)
 set (PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
 set (TGT race-condition-finder)
+set (CMAKE_BUILD_TYPE debug)
 
 set (${TGT}_SRCS
+	self-test/main.cc
 	src/controller.cc
 	src/disassembly.cc
 	src/elf.cc
 	src/ptrace.cc
+	src/thread-ia32.cc
     )
 
 include_directories (${GLIB2_INCLUDE_DIRS})
