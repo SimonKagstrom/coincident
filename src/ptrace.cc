@@ -189,7 +189,7 @@ private:
 		memset(&regs, 0, sizeof(regs));
 		ptrace(PTRACE_GETREGS, pid, 0, &regs);
 
-		return (void *)regs.eip;
+		return (void *)(regs.eip - 1);
 	}
 
 	// Assume x86 with single-byte breakpoint instructions for now...
