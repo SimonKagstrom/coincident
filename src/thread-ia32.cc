@@ -5,6 +5,8 @@
 
 #include <sys/user.h>
 
+extern "C" void cleanupAsm(void);
+
 class Thread : public IThread
 {
 public:
@@ -15,14 +17,16 @@ public:
 		size_t stack_sz = 8 * 1024 * 1024;
 		m_stackStart = (uint8_t *)xmalloc(stack_sz);
 
-		m_stack = m_stackStart + stack_sz - 8;
+		m_stack = m_stackStart + stack_sz - 16;
 
-		void **p = ((void **)m_stack) - 2;
+		void **p = (void **)m_stack;
 
 		setupRegs();
 
-		p[0] = (void *)cleanup; // Return address
-		p[1] = arg;
+		p[3] = (void *)this;
+		p[2] = (void *)this;
+		p[1] = (void *)cleanup;
+		p[0] = (void *)cleanupAsm; // Return address
 		m_regs.esp = (long)m_stack;
 		m_regs.eip = (long)fn;
 		m_regs.ebp = 0;
@@ -72,6 +76,14 @@ private:
 	IThreadExitListener &m_listener;
 	struct user_regs_struct m_regs;
 };
+
+asm(
+		".pushsection .text \n"
+		"cleanupAsm:        \n"
+		"   popl    %eax    \n"
+		"   jmp    *%eax    \n"
+		".popsection        \n"
+);
 
 
 // Yes, this is ugly.
