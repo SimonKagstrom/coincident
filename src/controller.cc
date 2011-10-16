@@ -150,6 +150,9 @@ private:
 
 			case ptrace_breakpoint:
 			case ptrace_syscall:
+				// Step to next instruction
+				ptrace.singleStep(pid);
+
 				nextThread = m_selector->selectThread(thread, m_nThreads,
 						getTimeStamp(m_startTimeStamp), &ev);
 
