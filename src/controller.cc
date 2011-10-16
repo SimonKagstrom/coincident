@@ -93,6 +93,7 @@ public:
 			exit(0);
 		}
 		else {
+			// Parent
 			bool should_quit;
 
 			// Select an initial thread and load its registers
@@ -102,7 +103,6 @@ public:
 			void *regs = m_threads[thread]->getRegs();
 			IPtrace::getInstance().loadRegisters(pid, regs);
 
-			// Parent
 			m_startTimeStamp = getTimeStamp(0);
 
 			do {
