@@ -19,7 +19,7 @@ public:
 
 		void **p = ((void **)m_stack) - 2;
 
-		memset(&m_regs, 0, sizeof(m_regs));
+		setupRegs();
 
 		p[0] = (void *)cleanup; // Return address
 		p[1] = arg;
@@ -39,6 +39,27 @@ public:
 	}
 
 private:
+	void setupRegs()
+	{
+		memset(&m_regs, 0, sizeof(m_regs));
+		asm volatile(
+				"pushf\n"
+				"popl 0(%[reg])\n"
+				: : [reg]"r"(&m_regs.eflags) : "memory" );
+		asm volatile("mov    %%cs, 0(%[reg])\n"
+				: : [reg]"r"(&m_regs.xcs) : "memory" );
+		asm volatile("mov    %%ds, 0(%[reg])\n"
+				: : [reg]"r"(&m_regs.xds) : "memory" );
+		asm volatile("mov    %%ss, 0(%[reg])\n"
+				: : [reg]"r"(&m_regs.xss) : "memory" );
+		asm volatile("mov    %%es, 0(%[reg])\n"
+				: : [reg]"r"(&m_regs.xes) : "memory" );
+		asm volatile("mov    %%fs, 0(%[reg])\n"
+				: : [reg]"r"(&m_regs.xfs) : "memory" );
+		asm volatile("mov    %%gs, 0(%[reg])\n"
+				: : [reg]"r"(&m_regs.xgs) : "memory" );
+	}
+
 	static void cleanup(void *p)
 	{
 		Thread *pThis = (Thread *)p;
