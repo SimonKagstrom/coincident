@@ -33,7 +33,7 @@ public:
 		m_startTimeStamp = getTimeStamp(0);
 	}
 
-	~Controller()
+	virtual ~Controller()
 	{
 		cleanup();
 	}
