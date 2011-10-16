@@ -5,11 +5,11 @@
 
 enum ptrace_event_type
 {
-	ptrace_error,
-	ptrace_breakpoint,
-	ptrace_syscall,
-	ptrace_crash,
-	ptrace_exit
+	ptrace_error       = -1,
+	ptrace_breakpoint  =  1,
+	ptrace_syscall     =  2,
+	ptrace_crash       =  3,
+	ptrace_exit        =  4,
 };
 
 class IPtrace
