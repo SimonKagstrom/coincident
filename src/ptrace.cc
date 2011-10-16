@@ -128,7 +128,7 @@ public:
 		void *pc = getPc(pid);
 
 		panic_if(m_instructionMap.find(pc) == m_instructionMap.end(),
-				"Signle-step over no breakpoint!");
+				"Single-step over no breakpoint at %p", pc);
 
 		writeByte(pid, pc, m_instructionMap[pc]);
 		long res = ptrace(PTRACE_SINGLESTEP, pid, 0, NULL);
