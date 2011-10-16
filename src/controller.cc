@@ -158,10 +158,8 @@ private:
 
 				// Perform the actual thread switch
 				if (nextThread != thread) {
-					IPtrace::getInstance().saveRegisters(pid,
-							m_threads[thread]->getRegs());
-					IPtrace::getInstance().loadRegisters(pid,
-							m_threads[nextThread]->getRegs());
+					ptrace.saveRegisters(pid, m_threads[thread]->getRegs());
+					ptrace.loadRegisters(pid, m_threads[nextThread]->getRegs());
 
 					thread = nextThread;
 				}
