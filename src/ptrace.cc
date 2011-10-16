@@ -62,7 +62,7 @@ public:
 		}
 		ptrace(PTRACE_SETOPTIONS, child, 0, PTRACE_O_TRACECLONE | PTRACE_O_TRACEFORK);
 
-		m_children.push_back(child);
+		m_child = child;
 
 		return child;
 	}
@@ -85,11 +85,8 @@ public:
 		m_addrToBreakpointMap[addr] = id;
 		m_instructionMap[addr] = data;
 
-		// Set the breakpoint in all children
-		for (std::list<int>::iterator iter = m_children.begin();
-				iter != m_children.end();
-				iter++)
-			writeByte(*iter, addr, 0xcc);
+		// Set the breakpoint
+		writeByte(m_child, addr, 0xcc);
 
 		return -1;
 	}
@@ -110,11 +107,8 @@ public:
 		m_breakpointToAddrMap.erase(id);
 		m_addrToBreakpointMap.erase(addr);
 
-		// Clear the actual breakpoint instruction in all children
-		for (std::list<int>::iterator iter = m_children.begin();
-				iter != m_children.end();
-				iter++)
-			writeByte(*iter, addr, m_instructionMap[addr]);
+		// Clear the actual breakpoint instruction
+		writeByte(m_child, addr, m_instructionMap[addr]);
 
 		return true;
 	}
@@ -225,7 +219,7 @@ private:
 	std::map<int, void *> m_breakpointToAddrMap;
 	std::map<void *, int> m_addrToBreakpointMap;
 
-	std::list<int> m_children;
+	pid_t m_child;
 };
 
 IPtrace &IPtrace::getInstance()
