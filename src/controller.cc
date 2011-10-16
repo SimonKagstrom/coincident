@@ -95,11 +95,18 @@ public:
 		else {
 			bool should_quit;
 
+			// Select an initial thread and load its registers
+			int thread = m_selector->selectThread(0, m_nThreads,
+						getTimeStamp(m_startTimeStamp), NULL);
+
+			void *regs = m_threads[thread]->getRegs();
+			IPtrace::getInstance().loadRegisters(pid, regs);
+
 			// Parent
 			m_startTimeStamp = getTimeStamp(0);
 
 			do {
-				should_quit = !runChild(pid);
+				should_quit = !runChild(pid, thread);
 			} while (!should_quit);
 		}
 
@@ -127,12 +134,13 @@ private:
 		free(m_threads);
 	}
 
-	bool runChild(int pid)
+	bool runChild(int pid, int thread)
 	{
 		IPtrace &ptrace = IPtrace::getInstance();
 
 		while (1) {
 			const IPtrace::PtraceEvent ev = ptrace.continueExecution(pid);
+			int nextThread;
 
 			switch (ev.type) {
 			case ptrace_error:
@@ -142,8 +150,19 @@ private:
 
 			case ptrace_breakpoint:
 			case ptrace_syscall:
-				pid = m_selector->selectThread(pid, m_nThreads,
+				nextThread = m_selector->selectThread(thread, m_nThreads,
 						getTimeStamp(m_startTimeStamp), &ev);
+
+				// Perform the actual thread switch
+				if (nextThread != thread) {
+					IPtrace::getInstance().saveRegisters(pid,
+							m_threads[thread]->getRegs());
+					IPtrace::getInstance().loadRegisters(pid,
+							m_threads[nextThread]->getRegs());
+
+					thread = nextThread;
+				}
+
 				return true;
 
 			default:
