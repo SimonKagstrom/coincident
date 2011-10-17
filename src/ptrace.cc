@@ -162,6 +162,11 @@ public:
 				out.eventId = -1;
 				out.addr = getPc(pid);
 
+				// Breakpoint id
+				addrToBreakpointMap_t::iterator it = m_addrToBreakpointMap.find(out.addr);
+				if (it != m_addrToBreakpointMap.end())
+					out.eventId = it->second;
+
 				return out;
 			}
 			// No, deliver it directly
