@@ -160,7 +160,7 @@ public:
 			if (WSTOPSIG(status) == SIGTRAP) {
 				out.type = ptrace_breakpoint;
 				out.eventId = -1;
-				out.addr = NULL; // FIXME!
+				out.addr = getPc(pid);
 
 				return out;
 			}
