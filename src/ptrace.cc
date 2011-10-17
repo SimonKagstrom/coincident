@@ -210,8 +210,8 @@ private:
 		unsigned long old_data;
 		unsigned long val;
 
-		old_data = ptrace(PTRACE_PEEKTEXT, pid, 0, 0);
-		val = (old_data & ~(0xffUL << shift)) | (data << shift);
+		old_data = ptrace(PTRACE_PEEKTEXT, pid, aligned, 0);
+		val = (old_data & ~(0xffULL << shift)) | (data << shift);
 		ptrace(PTRACE_POKETEXT, pid, aligned, val);
 	}
 
