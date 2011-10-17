@@ -142,13 +142,16 @@ public:
 		PtraceEvent out;
 		int status;
 		int who;
+		int res;
 
 		// Assume error
 		out.type = ptrace_error;
 		out.eventId = -1;
 		out.addr = NULL;
 
-		ptrace(PTRACE_CONT, pid, 0, 0);
+		res = ptrace(PTRACE_CONT, pid, 0, 0);
+		if (res < 0)
+			return out;
 
 		who = waitpid(pid, &status, __WALL);
 		if (who == -1)
