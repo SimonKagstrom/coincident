@@ -212,12 +212,15 @@ private:
 		return (addr / sizeof(unsigned long)) * sizeof(unsigned long);
 	}
 
+	typedef std::map<int, void *> breakpointToAddrMap_t;
+	typedef std::map<void *, int> addrToBreakpointMap_t;
+	typedef std::map<void *, uint8_t> instructionMap_t;
 
 	int m_breakpointId;
 
-	std::map<void *, uint8_t> m_instructionMap;
-	std::map<int, void *> m_breakpointToAddrMap;
-	std::map<void *, int> m_addrToBreakpointMap;
+	instructionMap_t m_instructionMap;
+	breakpointToAddrMap_t m_breakpointToAddrMap;
+	addrToBreakpointMap_t m_addrToBreakpointMap;
 
 	pid_t m_child;
 };
