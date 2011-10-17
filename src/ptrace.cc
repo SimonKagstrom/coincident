@@ -88,7 +88,7 @@ public:
 		// Set the breakpoint
 		writeByte(m_child, addr, 0xcc);
 
-		return -1;
+		return id;
 	}
 
 	bool clearBreakpoint(int id)
