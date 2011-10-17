@@ -121,8 +121,6 @@ public:
 
 				if (id < 0)
 					continue;
-
-				m_functionBreakpoints[id] = cur;
 			}
 
 			// Select an initial thread and load its registers
@@ -163,6 +161,42 @@ private:
 		free(m_threads);
 	}
 
+	bool handleBreakpoint(int pid, const IPtrace::PtraceEvent &ev)
+	{
+		IFunction *function = m_functions[ev.addr];
+		IPtrace &ptrace = IPtrace::getInstance();
+
+		// Step to next instruction
+		ptrace.singleStep(pid);
+
+		// Visited a function for the first time, setup breakpoints
+		if (function)
+		{
+			if (ptrace.clearBreakpoint(ev.eventId) == false)
+				error("Can't clear function breakpoint???");
+
+			function->setupMemoryBreakpoints();
+
+			return true;
+		}
+
+
+		int nextThread;
+
+		nextThread = m_selector->selectThread(m_curThread, m_nThreads,
+				getTimeStamp(m_startTimeStamp), &ev);
+
+		// Perform the actual thread switch
+		if (nextThread != m_curThread) {
+			ptrace.saveRegisters(pid, m_threads[m_curThread]->getRegs());
+			ptrace.loadRegisters(pid, m_threads[nextThread]->getRegs());
+
+			m_curThread = nextThread;
+		}
+
+		return true;
+	}
+
 	bool runChild(int pid)
 	{
 		IPtrace &ptrace = IPtrace::getInstance();
@@ -177,23 +211,11 @@ private:
 			case ptrace_exit:
 				return false;
 
-			case ptrace_breakpoint:
 			case ptrace_syscall:
-				// Step to next instruction
-				ptrace.singleStep(pid);
+				return false;
 
-				nextThread = m_selector->selectThread(m_curThread, m_nThreads,
-						getTimeStamp(m_startTimeStamp), &ev);
-
-				// Perform the actual thread switch
-				if (nextThread != m_curThread) {
-					ptrace.saveRegisters(pid, m_threads[m_curThread]->getRegs());
-					ptrace.loadRegisters(pid, m_threads[nextThread]->getRegs());
-
-					m_curThread = nextThread;
-				}
-
-				return true;
+			case ptrace_breakpoint:
+				return handleBreakpoint(pid, ev);
 
 			default:
 				return false;
@@ -223,7 +245,6 @@ private:
 	int m_curThread;
 
 	functionMap_t m_functions;
-	functionBreakpointMap_t m_functionBreakpoints;
 
 	uint64_t m_startTimeStamp;
 
