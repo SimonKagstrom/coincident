@@ -24,7 +24,7 @@ public:
 };
 
 
-class Controller : public IController, IThread::IThreadExitListener, IElf::IFunctionListener
+class Controller : public IController, IElf::IFunctionListener
 {
 public:
 	Controller()
@@ -52,14 +52,10 @@ public:
 		m_functions[fn.getEntry()] = &fn;
 	}
 
-	// Thread exit handler from the IThreadExitListener class
-	void threadExit(IThread &thread)
+	// Thread exit handler (just a marker)
+	static void threadExit()
 	{
-		// Do something
-		printf("Thread exited\n");
-		IThread::releaseThread(thread);
 	}
-
 
 	void setThreadSelector(IThreadSelector *selector)
 	{
@@ -79,7 +75,7 @@ public:
 				m_nThreads * sizeof(IThread *));
 
 		// Add the thread to the list
-		m_threads[cur] = &IThread::createThread(*this, fn, priv);
+		m_threads[cur] = &IThread::createThread(threadExit, fn, priv);
 
 		return true;
 	}
@@ -169,9 +165,11 @@ private:
 		// Step to next instruction
 		ptrace.singleStep(pid);
 
-		// Visited a function for the first time, setup breakpoints
-		if (function)
-		{
+		if (function && function->getEntry() == (void *)threadExit) {
+			IThread::releaseThread(*m_threads[m_curThread]);
+			// Re-select the thread
+		} else if (function) {
+			// Visited a function for the first time, setup breakpoints
 			if (ptrace.clearBreakpoint(ev.eventId) == false)
 				error("Can't clear function breakpoint???");
 
@@ -179,7 +177,6 @@ private:
 
 			return true;
 		}
-
 
 		int nextThread;
 

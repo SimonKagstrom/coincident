@@ -5,7 +5,7 @@
 #define N_THREADS 16
 static IThread *threads[N_THREADS];
 
-IThread &IThread::createThread(IThread::IThreadExitListener &listener,
+IThread &IThread::createThread(void (*exitHook)(),
 		int (*fn)(void *), void *arg)
 {
 	int i;
@@ -17,7 +17,7 @@ IThread &IThread::createThread(IThread::IThreadExitListener &listener,
 	if (i == N_THREADS)
 		panic("No free threads!");
 
-	threads[i] = new Thread(listener, fn, arg);
+	threads[i] = new Thread(exitHook, fn, arg);
 
 	return *threads[i];
 }
