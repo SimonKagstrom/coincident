@@ -31,6 +31,8 @@ public:
 		if (!data || size == 0)
 			return false;
 
+		ud_set_pc(&m_ud, 0);
+
 		m_data = data;
 		m_dataSize = size;
 		m_count = 0;
