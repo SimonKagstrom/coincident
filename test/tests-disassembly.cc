@@ -77,4 +77,12 @@ TEST(disassembly)
 	ASSERT_TRUE(harness.m_memRefs == 4);
 	ASSERT_TRUE(harness.m_calls == 1);
 	ASSERT_TRUE(harness.m_branches == 1);
+
+	harness.clear();
+
+	res = dis.execute(&harness, asm_dump, sizeof(asm_dump));
+	ASSERT_TRUE(res == true);
+	ASSERT_TRUE(harness.m_memRefs == 4);
+	ASSERT_TRUE(harness.m_calls == 1);
+	ASSERT_TRUE(harness.m_branches == 1);
 }
