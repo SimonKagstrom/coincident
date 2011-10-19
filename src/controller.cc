@@ -144,7 +144,7 @@ public:
 	{
 	}
 
-	void removeThread(int which)
+	void removeThread(int pid, int which)
 	{
 		if (m_nThreads < 1)
 			return;
@@ -159,6 +159,8 @@ public:
 
 		if (which == m_curThread || m_curThread >= m_nThreads)
 			m_curThread = 0;
+
+		IPtrace::getInstance().loadRegisters(pid, m_threads[0]->getRegs());
 	}
 
 
@@ -180,7 +182,7 @@ public:
 		ptrace.singleStep(pid);
 
 		if (function && function->getEntry() == (void *)threadExit) {
-			removeThread(m_curThread);
+			removeThread(pid, m_curThread);
 			// Re-select the thread
 		} else if (function) {
 			// Visited a function for the first time, setup breakpoints
