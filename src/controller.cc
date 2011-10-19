@@ -35,6 +35,8 @@ public:
 		m_nThreads = 0;
 		m_curThread = 0;
 
+		m_schedulerLock = 0;
+
 		m_selector = new DefaultThreadSelector();
 		m_startTimeStamp = getTimeStamp(0);
 
@@ -79,6 +81,23 @@ public:
 
 		return true;
 	}
+
+
+	int lockScheduler()
+	{
+		int out = m_schedulerLock;
+
+		m_schedulerLock++;
+
+		return out;
+	}
+
+	void unlockScheduler(int level)
+	{
+		m_schedulerLock = level;
+	}
+
+
 
 	bool run()
 	{
@@ -194,6 +213,10 @@ public:
 			return true;
 		}
 
+		// No reschedules if this is set
+		if (m_schedulerLock)
+			return true;
+
 		int nextThread;
 
 		nextThread = m_selector->selectThread(m_curThread, m_nThreads,
@@ -254,6 +277,7 @@ public:
 
 	uint64_t m_startTimeStamp;
 
+	int m_schedulerLock;
 	int m_runLimit;
 };
 

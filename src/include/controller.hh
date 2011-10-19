@@ -24,6 +24,11 @@ public:
 	virtual bool addThread(int (*fn)(void *), void *priv) = 0;
 
 
+	virtual int lockScheduler() = 0;
+
+	virtual void unlockScheduler(int level) = 0;
+
+
 	virtual bool run() = 0;
 
 	virtual void setRuns(int nRuns) = 0;
