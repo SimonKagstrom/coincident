@@ -4,7 +4,7 @@
 
 class Thread : public IThread {
 public:
-	Thread(IThreadExitListener &listener,
+	Thread(void (*exitHook)(),
 			int (*fn)(void *), void *arg)
 	{
 	}
