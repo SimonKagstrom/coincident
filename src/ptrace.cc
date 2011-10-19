@@ -125,12 +125,21 @@ public:
 
 	void singleStep(int pid)
 	{
-		void *pc = getPc(pid);
+		struct user_regs_struct regs;
+		void *pc;
+
+		ptrace(PTRACE_GETREGS, pid, 0, &regs);
+		pc = getPcFromRegs(&regs);
 
 		panic_if(m_instructionMap.find(pc) == m_instructionMap.end(),
 				"Single-step over no breakpoint at %p", pc);
 
 		writeByte(pid, pc, m_instructionMap[pc]);
+
+		// Step back one instruction
+		regs.eip--;
+		ptrace(PTRACE_SETREGS, pid, 0, &regs);
+
 		long res = ptrace(PTRACE_SINGLESTEP, pid, 0, NULL);
 		panic_if(res < 0,
 				"ptrace singlestep failed!\n");
@@ -190,6 +199,11 @@ public:
 
 
 private:
+	void *getPcFromRegs(struct user_regs_struct *regs)
+	{
+		return (void *)(regs->eip - 1);
+	}
+
 	void *getPc(int pid)
 	{
 		struct user_regs_struct regs;
@@ -197,7 +211,7 @@ private:
 		memset(&regs, 0, sizeof(regs));
 		ptrace(PTRACE_GETREGS, pid, 0, &regs);
 
-		return (void *)(regs.eip - 1);
+		return getPcFromRegs(&regs);
 	}
 
 	// Assume x86 with single-byte breakpoint instructions for now...
