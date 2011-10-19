@@ -92,12 +92,12 @@ public:
 		 * For each round in the test, this is forked again
 		 * to retain the original memory state.
 		 */
-		int pid = ptrace.forkAndAttach();
+		m_curPid = ptrace.forkAndAttach();
 
-		if (pid < 0) {
+		if (m_curPid < 0) {
 			error("fork failed\n");
 			return false;
-		} else if (pid == 0) {
+		} else if (m_curPid == 0) {
 			// Hmm... Not sure what to do here
 			exit(0);
 		}
@@ -124,12 +124,12 @@ public:
 						getTimeStamp(m_startTimeStamp), NULL);
 
 			void *regs = m_threads[m_curThread]->getRegs();
-			IPtrace::getInstance().loadRegisters(pid, regs);
+			IPtrace::getInstance().loadRegisters(m_curPid, regs);
 
 			m_startTimeStamp = getTimeStamp(0);
 
 			do {
-				should_quit = !runChild(pid);
+				should_quit = !runChild();
 			} while (!should_quit);
 		}
 
@@ -173,16 +173,16 @@ public:
 			delete m_selector;
 	}
 
-	bool handleBreakpoint(int pid, const IPtrace::PtraceEvent &ev)
+	bool handleBreakpoint(const IPtrace::PtraceEvent &ev)
 	{
 		IFunction *function = m_functions[ev.addr];
 		IPtrace &ptrace = IPtrace::getInstance();
 
 		// Step to next instruction
-		ptrace.singleStep(pid);
+		ptrace.singleStep(m_curPid);
 
 		if (function && function->getEntry() == (void *)threadExit) {
-			removeThread(pid, m_curThread);
+			removeThread(m_curPid, m_curThread);
 			// Re-select the thread
 		} else if (function) {
 			// Visited a function for the first time, setup breakpoints
@@ -201,8 +201,8 @@ public:
 
 		// Perform the actual thread switch
 		if (nextThread != m_curThread) {
-			ptrace.saveRegisters(pid, m_threads[m_curThread]->getRegs());
-			ptrace.loadRegisters(pid, m_threads[nextThread]->getRegs());
+			ptrace.saveRegisters(m_curPid, m_threads[m_curThread]->getRegs());
+			ptrace.loadRegisters(m_curPid, m_threads[nextThread]->getRegs());
 
 			m_curThread = nextThread;
 		}
@@ -210,12 +210,12 @@ public:
 		return true;
 	}
 
-	bool runChild(int pid)
+	bool runChild()
 	{
 		IPtrace &ptrace = IPtrace::getInstance();
 
 		while (1) {
-			const IPtrace::PtraceEvent ev = ptrace.continueExecution(pid);
+			const IPtrace::PtraceEvent ev = ptrace.continueExecution(m_curPid);
 			int nextThread;
 
 			switch (ev.type) {
@@ -228,7 +228,7 @@ public:
 				return false;
 
 			case ptrace_breakpoint:
-				return handleBreakpoint(pid, ev);
+				return handleBreakpoint(ev);
 
 			default:
 				return false;
@@ -256,6 +256,8 @@ public:
 	IThread *m_threads[N_THREADS];
 	IThreadSelector *m_selector;
 	int m_curThread;
+
+	int m_curPid;
 
 	functionMap_t m_functions;
 

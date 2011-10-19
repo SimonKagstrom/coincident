@@ -87,7 +87,7 @@ TEST(controllerTestThreadRemoval)
 	ASSERT_EQ(controller.m_nThreads, 2);
 
 	// Will remove thread since it exited
-	controller.handleBreakpoint(10, ev);
+	controller.handleBreakpoint(ev);
 	ASSERT_EQ(controller.m_nThreads, 1);
 }
 
