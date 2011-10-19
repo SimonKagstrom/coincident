@@ -129,7 +129,7 @@ public:
 			m_startTimeStamp = getTimeStamp(0);
 
 			do {
-				should_quit = !runChild();
+				should_quit = !continueExecution();
 			} while (!should_quit);
 		}
 
@@ -210,32 +210,23 @@ public:
 		return true;
 	}
 
-	bool runChild()
+	bool continueExecution()
 	{
-		IPtrace &ptrace = IPtrace::getInstance();
+		const IPtrace::PtraceEvent ev = IPtrace::getInstance().continueExecution(m_curPid);
 
-		while (1) {
-			const IPtrace::PtraceEvent ev = ptrace.continueExecution(m_curPid);
-			int nextThread;
+		switch (ev.type) {
+		case ptrace_error:
+		case ptrace_crash:
+		case ptrace_exit:
+			return false;
 
-			switch (ev.type) {
-			case ptrace_error:
-			case ptrace_crash:
-			case ptrace_exit:
-				return false;
+		case ptrace_syscall:
+			return false;
 
-			case ptrace_syscall:
-				return false;
-
-			case ptrace_breakpoint:
-				return handleBreakpoint(ev);
-
-			default:
-				return false;
-			}
+		case ptrace_breakpoint:
+			return handleBreakpoint(ev);
 		}
 
-		/* Unreachable */
 		return false;
 	}
 
