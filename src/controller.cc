@@ -11,6 +11,8 @@
 #include <sys/wait.h>
 #include <map>
 
+#define N_THREADS 16
+
 class DefaultThreadSelector : public IController::IThreadSelector
 {
 public:
@@ -29,7 +31,7 @@ class Controller : public IController, IElf::IFunctionListener
 public:
 	Controller()
 	{
-		m_threads = NULL;
+		memset(m_threads, 0, sizeof(m_threads));
 		m_nThreads = 0;
 		m_curThread = 0;
 
@@ -71,8 +73,6 @@ public:
 		int cur = m_nThreads;
 
 		m_nThreads++;
-		m_threads = (IThread **)realloc(m_threads,
-				m_nThreads * sizeof(IThread *));
 
 		// Add the thread to the list
 		m_threads[cur] = &IThread::createThread(threadExit, fn, priv);
@@ -144,7 +144,23 @@ public:
 	{
 	}
 
-private:
+	void removeThread(int which)
+	{
+		if (m_nThreads < 1)
+			return;
+
+		IThread::releaseThread(*m_threads[which]);
+
+		// Swap threads
+		if (which != m_nThreads)
+			m_threads[which] = m_threads[m_nThreads - 1];
+
+		m_nThreads--;
+
+		if (which == m_curThread || m_curThread >= m_nThreads)
+			m_curThread = 0;
+	}
+
 
 	void cleanup()
 	{
@@ -153,8 +169,6 @@ private:
 
 		if (m_selector)
 			delete m_selector;
-
-		free(m_threads);
 	}
 
 	bool handleBreakpoint(int pid, const IPtrace::PtraceEvent &ev)
@@ -166,7 +180,7 @@ private:
 		ptrace.singleStep(pid);
 
 		if (function && function->getEntry() == (void *)threadExit) {
-			IThread::releaseThread(*m_threads[m_curThread]);
+			removeThread(m_curThread);
 			// Re-select the thread
 		} else if (function) {
 			// Visited a function for the first time, setup breakpoints
@@ -237,7 +251,7 @@ private:
 
 
 	int m_nThreads;
-	IThread **m_threads;
+	IThread *m_threads[N_THREADS];
 	IThreadSelector *m_selector;
 	int m_curThread;
 
