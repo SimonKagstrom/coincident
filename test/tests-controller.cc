@@ -57,6 +57,9 @@ TEST(controllerRunChild)
 		.WillOnce(Return(ev))
 		.WillRepeatedly(Return(evDefault));
 
+	EXPECT_CALL(ptrace, singleStep(_))
+		.Times(AtLeast(1));
+
 	// Add two threads
 	controller.addThread(test_thread, NULL);
 	controller.addThread(test_thread, NULL);
