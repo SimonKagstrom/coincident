@@ -1,6 +1,6 @@
 #include "test.hh"
 
-#include <controller.hh>
+#include "../src/controller.cc"
 #include "mock-ptrace.hh"
 
 static int test_thread(void *priv)
@@ -66,3 +66,28 @@ TEST(controllerRunChild, DEADLINE_REALTIME_MS(10000))
 
 	controller.run();
 }
+
+TEST(controllerTestThreadRemoval)
+{
+	Controller &controller = (Controller &)IController::getInstance();
+	MockPtrace &ptrace = (MockPtrace &)IPtrace::getInstance();
+
+	IPtrace::PtraceEvent ev;
+
+	EXPECT_CALL(ptrace, singleStep(_))
+		.Times(AtLeast(1));
+
+
+	ev.addr = (void *)Controller::threadExit;
+	ev.eventId = 10;
+	ev.type = ptrace_breakpoint;
+
+	controller.addThread(test_thread, NULL);
+	controller.addThread(test_thread, NULL);
+	ASSERT_EQ(controller.m_nThreads, 2);
+
+	// Will remove thread since it exited
+	controller.handleBreakpoint(10, ev);
+	ASSERT_EQ(controller.m_nThreads, 1);
+}
+

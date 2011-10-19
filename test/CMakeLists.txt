@@ -13,7 +13,6 @@ set (${TEST_ELF}_SRCS
 )
 
 set (${TGT}_SRCS
-    ../src/controller.cc
     ../src/disassembly.cc
     ../src/elf.cc
     main.cc
