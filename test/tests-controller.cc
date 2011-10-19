@@ -34,7 +34,7 @@ TEST(controllerAddProcessForkError)
 }
 
 
-TEST(controllerRunChild)
+TEST(controllerRunChild, DEADLINE_REALTIME_MS(10000))
 {
 	IController &controller = IController::getInstance();
 	MockPtrace &ptrace = (MockPtrace &)IPtrace::getInstance();
