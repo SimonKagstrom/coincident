@@ -8,6 +8,15 @@ static int test_thread(void *priv)
 	return 0;
 }
 
+class MockThreadSelector : public Controller::IThreadSelector
+{
+public:
+	MOCK_METHOD4(selectThread, int(int curThread,
+			int nThreads,
+			uint64_t timeUs,
+			const IPtrace::PtraceEvent *));
+};
+
 TEST(controllerForkError)
 {
 	IController &controller = IController::getInstance();
@@ -91,3 +100,50 @@ TEST(controllerTestThreadRemoval)
 	ASSERT_EQ(controller.m_nThreads, 1);
 }
 
+TEST(controllerThreadScheduling)
+{
+	Controller &controller = (Controller &)IController::getInstance();
+	MockPtrace &ptrace = (MockPtrace &)IPtrace::getInstance();
+
+	IPtrace::PtraceEvent ev;
+
+	ev.type = ptrace_breakpoint;
+	ev.eventId = 100;
+	ev.addr = (void *)(((unsigned long)test_thread) + 1); // No function!
+
+	EXPECT_CALL(ptrace, continueExecution(_))
+		.Times(AtLeast(1))
+		.WillRepeatedly(Return(ev));
+
+	EXPECT_CALL(ptrace, singleStep(_))
+		.Times(AtLeast(1));
+
+	// Add two threads
+	controller.addThread(test_thread, NULL);
+	controller.addThread(test_thread, NULL);
+
+	MockThreadSelector selector;
+
+	controller.setThreadSelector(&selector);
+	EXPECT_CALL(selector, selectThread(_,_,_,_))
+		.Times(Exactly(1))
+		.WillOnce(Return(1));
+
+	EXPECT_CALL(ptrace, saveRegisters(_,_))
+		.Times(AtLeast(1));
+	EXPECT_CALL(ptrace, loadRegisters(_,_))
+		.Times(AtLeast(1));
+
+	ASSERT_EQ(controller.m_curThread, 0);
+	controller.continueExecution();
+	ASSERT_EQ(controller.m_curThread, 1);
+
+	int level = controller.lockScheduler();
+	ASSERT_EQ(level, 0);
+
+	// Should not have changed thread
+	controller.continueExecution();
+	ASSERT_EQ(controller.m_curThread, 1);
+
+	controller.unlockScheduler(level);
+}
