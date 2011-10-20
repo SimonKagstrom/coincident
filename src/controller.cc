@@ -158,6 +158,9 @@ public:
 				if (m_nActiveThreads == 0)
 					break;
 			} while (!should_quit);
+
+			ptrace.kill(m_curPid);
+			m_curPid = -1;
 		}
 
 		return true;
