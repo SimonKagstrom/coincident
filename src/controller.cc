@@ -32,6 +32,7 @@ public:
 	Controller()
 	{
 		memset(m_threads, 0, sizeof(m_threads));
+		m_nActiveThreads = 0;
 		m_nThreads = 0;
 		m_curThread = 0;
 
@@ -75,6 +76,7 @@ public:
 		int cur = m_nThreads;
 
 		m_nThreads++;
+		m_nActiveThreads++;
 
 		// Add the thread to the list
 		m_threads[cur] = &IThread::createThread(threadExit, fn, priv);
@@ -124,6 +126,8 @@ public:
 			// Parent
 			bool should_quit;
 
+			m_nActiveThreads = m_nThreads;
+
 			// Setup function breakpoints
 			for (functionMap_t::iterator it = m_functions.begin();
 					it != m_functions.end(); it++) {
@@ -139,7 +143,7 @@ public:
 			}
 
 			// Select an initial thread and load its registers
-			m_curThread = m_selector->selectThread(0, m_nThreads,
+			m_curThread = m_selector->selectThread(0, m_nActiveThreads,
 						getTimeStamp(m_startTimeStamp), NULL);
 
 			void *regs = m_threads[m_curThread]->getRegs();
@@ -165,18 +169,18 @@ public:
 
 	void removeThread(int pid, int which)
 	{
-		if (m_nThreads < 1)
+		if (m_nActiveThreads < 1)
 			return;
 
 		IThread::releaseThread(*m_threads[which]);
 
 		// Swap threads
-		if (which != m_nThreads)
-			m_threads[which] = m_threads[m_nThreads - 1];
+		if (which != m_nActiveThreads)
+			m_threads[which] = m_threads[m_nActiveThreads - 1];
 
-		m_nThreads--;
+		m_nActiveThreads--;
 
-		if (which == m_curThread || m_curThread >= m_nThreads)
+		if (which == m_curThread || m_curThread >= m_nActiveThreads)
 			m_curThread = 0;
 
 		IPtrace::getInstance().loadRegisters(pid, m_threads[0]->getRegs());
@@ -185,7 +189,7 @@ public:
 
 	void cleanup()
 	{
-		for (int i = 0; i < m_nThreads; i++)
+		for (int i = 0; i < m_nActiveThreads; i++)
 			IThread::releaseThread(*m_threads[i]);
 
 		if (m_selector)
@@ -219,7 +223,7 @@ public:
 
 		int nextThread;
 
-		nextThread = m_selector->selectThread(m_curThread, m_nThreads,
+		nextThread = m_selector->selectThread(m_curThread, m_nActiveThreads,
 				getTimeStamp(m_startTimeStamp), &ev);
 
 		// Perform the actual thread switch
@@ -266,6 +270,7 @@ public:
 	typedef std::map<int, IFunction *> functionBreakpointMap_t;
 
 
+	int m_nActiveThreads;
 	int m_nThreads;
 	IThread *m_threads[N_THREADS];
 	IThreadSelector *m_selector;

@@ -93,11 +93,12 @@ TEST(controllerTestThreadRemoval)
 
 	controller.addThread(test_thread, NULL);
 	controller.addThread(test_thread, NULL);
-	ASSERT_EQ(controller.m_nThreads, 2);
+
+	ASSERT_EQ(controller.m_nActiveThreads, 2);
 
 	// Will remove thread since it exited
 	controller.handleBreakpoint(ev);
-	ASSERT_EQ(controller.m_nThreads, 1);
+	ASSERT_EQ(controller.m_nActiveThreads, 1);
 }
 
 TEST(controllerThreadScheduling)
