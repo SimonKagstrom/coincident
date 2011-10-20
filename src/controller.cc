@@ -153,6 +153,10 @@ public:
 
 			do {
 				should_quit = !continueExecution();
+
+				// Quit if all threads have exited cleanly
+				if (m_nActiveThreads == 0)
+					break;
 			} while (!should_quit);
 		}
 
@@ -183,7 +187,8 @@ public:
 		if (which == m_curThread || m_curThread >= m_nActiveThreads)
 			m_curThread = 0;
 
-		IPtrace::getInstance().loadRegisters(pid, m_threads[0]->getRegs());
+		if (m_nActiveThreads > 0)
+			IPtrace::getInstance().loadRegisters(pid, m_threads[0]->getRegs());
 	}
 
 
@@ -206,6 +211,9 @@ public:
 
 		if (function && function->getEntry() == (void *)threadExit) {
 			removeThread(m_curPid, m_curThread);
+
+			if (m_nActiveThreads == 0)
+				return true;
 			// Re-select the thread
 		} else if (function) {
 			// Visited a function for the first time, setup breakpoints
