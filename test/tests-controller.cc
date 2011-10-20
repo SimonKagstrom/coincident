@@ -17,7 +17,7 @@ public:
 			const IPtrace::PtraceEvent *));
 };
 
-TEST(controllerForkError)
+TEST(controllerForkError, DEADLINE_REALTIME_MS(10000))
 {
 	IController &controller = IController::getInstance();
 	MockPtrace &ptrace = (MockPtrace &)IPtrace::getInstance();
@@ -29,7 +29,7 @@ TEST(controllerForkError)
 	controller.run();
 }
 
-TEST(controllerAddProcessForkError)
+TEST(controllerAddProcessForkError, DEADLINE_REALTIME_MS(10000))
 {
 	IController &controller = IController::getInstance();
 	MockPtrace &ptrace = (MockPtrace &)IPtrace::getInstance();
@@ -76,7 +76,7 @@ TEST(controllerRunChild, DEADLINE_REALTIME_MS(10000))
 	controller.run();
 }
 
-TEST(controllerTestThreadRemoval)
+TEST(controllerTestThreadRemoval, DEADLINE_REALTIME_MS(10000))
 {
 	Controller &controller = (Controller &)IController::getInstance();
 	MockPtrace &ptrace = (MockPtrace &)IPtrace::getInstance();
@@ -101,7 +101,7 @@ TEST(controllerTestThreadRemoval)
 	ASSERT_EQ(controller.m_nActiveThreads, 1);
 }
 
-TEST(controllerThreadScheduling)
+TEST(controllerThreadScheduling, DEADLINE_REALTIME_MS(10000))
 {
 	Controller &controller = (Controller &)IController::getInstance();
 	MockPtrace &ptrace = (MockPtrace &)IPtrace::getInstance();
