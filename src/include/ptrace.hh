@@ -68,4 +68,6 @@ public:
 	 * @return the event the execution stopped at.
 	 */
 	virtual const PtraceEvent continueExecution(int pid) = 0;
+
+	virtual void kill(int pid) = 0;
 };

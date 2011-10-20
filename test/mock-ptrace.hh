@@ -16,4 +16,5 @@ public:
 	MOCK_METHOD2(saveRegisters, void(int pid, void *regs));
 	MOCK_METHOD1(singleStep, void(int pid));
 	MOCK_METHOD1(continueExecution, const PtraceEvent(int pid));
+	MOCK_METHOD1(kill, void(int pid));
 };

@@ -45,7 +45,7 @@ public:
 				error("Can't set me as ptraced");
 				return -1;
 			}
-			kill(getpid(), SIGSTOP);
+			::kill(getpid(), SIGSTOP);
 
 			return 0;
 		}
@@ -197,6 +197,11 @@ public:
 		return out;
 	}
 
+
+	void kill(int pid)
+	{
+		ptrace(PTRACE_KILL, pid, 0, 0);
+	}
 
 private:
 	void *getPcFromRegs(struct user_regs_struct *regs)
