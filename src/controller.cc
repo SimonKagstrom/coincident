@@ -38,6 +38,9 @@ public:
 
 		m_schedulerLock = 0;
 
+		m_runLimit = 0;
+		m_timeLimit = 0;
+
 		m_selector = new DefaultThreadSelector();
 		m_startTimeStamp = getTimeStamp(0);
 
@@ -101,7 +104,7 @@ public:
 
 
 
-	bool run()
+	bool forkAndRunOneRound()
 	{
 		bool should_quit = false;
 
@@ -149,8 +152,6 @@ public:
 			void *regs = m_threads[m_curThread]->getRegs();
 			IPtrace::getInstance().loadRegisters(m_curPid, regs);
 
-			m_startTimeStamp = getTimeStamp(0);
-
 			do {
 				should_quit = !continueExecution();
 
@@ -166,12 +167,44 @@ public:
 		return true;
 	}
 
+	bool run()
+	{
+		int runsLeft = -1;
+		bool out;
+
+		if (m_runLimit)
+			runsLeft = m_runLimit;
+
+		m_startTimeStamp = getTimeStamp(0);
+
+		while (1) {
+			out = forkAndRunOneRound();
+			if (!out)
+				break;
+
+			if (runsLeft > 0) {
+				runsLeft--;
+
+				if (runsLeft == 0)
+					break;
+			}
+
+			if (m_timeLimit &&
+					getTimeStamp(m_startTimeStamp) > m_timeLimit)
+				break;
+		}
+
+		return out;
+	}
+
 	void setRuns(int nRuns)
 	{
+		m_runLimit = nRuns;
 	}
 
 	void setTimeLimit(int ms)
 	{
+		m_timeLimit = ms * 1000;
 	}
 
 	void removeThread(int pid, int which)
@@ -295,6 +328,7 @@ public:
 
 	int m_schedulerLock;
 	int m_runLimit;
+	uint64_t m_timeLimit;
 };
 
 IController &IController::getInstance()
