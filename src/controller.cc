@@ -47,6 +47,18 @@ public:
 		IElf &elf = IElf::getInstance();
 
 		elf.setFile(this, "/proc/self/exe");
+
+
+		// Setup function breakpoints
+		for (functionMap_t::iterator it = m_functions.begin();
+				it != m_functions.end(); it++) {
+			IFunction *cur = it->second;
+
+			if (cur->getSize() == 0)
+				continue;
+
+			m_breakpoints[cur->getEntry()] = 1;
+		}
 	}
 
 	virtual ~Controller()
@@ -131,18 +143,11 @@ public:
 
 			m_nActiveThreads = m_nThreads;
 
-			// Setup function breakpoints
-			for (functionMap_t::iterator it = m_functions.begin();
-					it != m_functions.end(); it++) {
-				IFunction *cur = it->second;
+			for (breakpointMap_t::iterator it = m_breakpoints.begin();
+					it != m_breakpoints.end(); it++) {
+				void *p = it->first;
 
-				if (cur->getSize() == 0)
-					continue;
-
-				int id = cur->setupEntryBreakpoint();
-
-				if (id < 0)
-					continue;
+				ptrace.setBreakpoint(p);
 			}
 
 			// Select an initial thread and load its registers
@@ -312,6 +317,7 @@ public:
 
 	typedef std::map<void *, IFunction *> functionMap_t;
 	typedef std::map<int, IFunction *> functionBreakpointMap_t;
+	typedef std::map<void *, int> breakpointMap_t;
 
 
 	int m_nActiveThreads;
@@ -323,6 +329,7 @@ public:
 	int m_curPid;
 
 	functionMap_t m_functions;
+	breakpointMap_t m_breakpoints;
 
 	uint64_t m_startTimeStamp;
 

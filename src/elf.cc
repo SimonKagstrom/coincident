@@ -46,11 +46,6 @@ public:
 		return m_entry;
 	}
 
-	int setupEntryBreakpoint()
-	{
-		return IPtrace::getInstance().setBreakpoint(m_entry);
-	}
-
 	std::list<int> &setupMemoryBreakpoints()
 	{
 		bool res = IPtrace::getInstance().readMemory(m_data,

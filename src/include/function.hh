@@ -12,7 +12,5 @@ public:
 
 	virtual size_t getSize() = 0;
 
-	virtual int setupEntryBreakpoint() = 0;
-
 	virtual std::list<int> &setupMemoryBreakpoints() = 0;
 };
