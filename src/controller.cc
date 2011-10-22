@@ -261,6 +261,8 @@ public:
 			if (ptrace.clearBreakpoint(ev.eventId) == false)
 				error("Can't clear function breakpoint???");
 
+			m_breakpoints.erase(function->getEntry());
+
 			std::list<void *> refs = function->getMemoryRefs();
 
 			for (std::list<void *>::iterator it = refs.begin();
