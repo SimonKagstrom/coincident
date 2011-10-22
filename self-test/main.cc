@@ -19,6 +19,8 @@ int main(int argc, const char *argv[])
 
 	controller.addThread(fn_a, NULL);
 	controller.addThread(fn_b, NULL);
+
+	controller.setRuns(1);
 	controller.run();
 
 	return 0;

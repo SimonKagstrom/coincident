@@ -73,6 +73,7 @@ TEST(controllerRunChild, DEADLINE_REALTIME_MS(10000))
 	controller.addThread(test_thread, NULL);
 	controller.addThread(test_thread, NULL);
 
+	controller.setRuns(1);
 	controller.run();
 }
 
