@@ -20,10 +20,7 @@ public:
 		{
 			m_map[std::string(fn.getName())]++;
 
-			int v = fn.setupEntryBreakpoint();
-			ASSERT_TRUE(v >= 0);
-
-			std::list<int> list = fn.setupMemoryBreakpoints();
+			std::list<void *> list = fn.getMemoryRefs();
 			if (strcmp(fn.getName(), "vobb") == 0)
 				ASSERT_TRUE(list.size() > 0);
 		}
