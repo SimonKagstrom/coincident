@@ -12,5 +12,5 @@ public:
 
 	virtual size_t getSize() = 0;
 
-	virtual std::list<int> &setupMemoryBreakpoints() = 0;
+	virtual std::list<void *> &getMemoryRefs() = 0;
 };

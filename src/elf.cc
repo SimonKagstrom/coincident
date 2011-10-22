@@ -46,20 +46,21 @@ public:
 		return m_entry;
 	}
 
-	std::list<int> &setupMemoryBreakpoints()
+	std::list<void *> &getMemoryRefs()
 	{
 		bool res = IPtrace::getInstance().readMemory(m_data,
 				m_entry, m_size);
 
-		m_breakpointList.clear();
+		m_memoryRefList.clear();
 
 		if (!res) {
 			error("Can't read memory at %p", m_entry);
-			return m_breakpointList;
+			return m_memoryRefList;
 		}
 
 		IDisassembly::getInstance().execute(this, m_data, m_size);
-		return m_breakpointList;
+
+		return m_memoryRefList;
 	}
 
 	// These three functions are the IInstructionListerners
@@ -67,10 +68,7 @@ public:
 	{
 		off_t addr = (off_t)m_entry + offset;
 
-		int id = IPtrace::getInstance().setBreakpoint((void *)addr);
-
-		if (id >= 0)
-			m_breakpointList.push_back(id);
+		m_memoryRefList.push_back((void *)addr);
 	}
 
 	void onCall(off_t offset)
@@ -87,7 +85,7 @@ private:
 	void *m_entry;
 	uint8_t *m_data;
 
-	std::list<int> m_breakpointList;
+	std::list<void *> m_memoryRefList;
 };
 
 class Elf : public IElf
