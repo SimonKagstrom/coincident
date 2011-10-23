@@ -136,7 +136,8 @@ Controller::Controller()
 			it != m_functions.end(); it++) {
 		IFunction *cur = it->second;
 
-		if (cur->getSize() == 0)
+		if (cur->getSize() == 0 ||
+				cur->getEntry() == 0)
 			continue;
 
 		m_breakpoints[cur->getEntry()] = 1;
