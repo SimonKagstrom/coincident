@@ -88,18 +88,20 @@ TEST(controllerTestThreadRemoval, DEADLINE_REALTIME_MS(10000))
 		.Times(AtLeast(1));
 
 
-	ev.addr = (void *)Controller::threadExit;
+	ev.addr = (void *)Session::threadExit;
 	ev.eventId = 10;
 	ev.type = ptrace_breakpoint;
 
 	controller.addThread(test_thread, NULL);
 	controller.addThread(test_thread, NULL);
+	ASSERT_EQ(controller.m_nThreads, 2);
 
-	ASSERT_EQ(controller.m_nActiveThreads, 2);
+	Session cur(controller, controller.m_nThreads, controller.m_threads);
+	ASSERT_EQ(cur.m_nThreads, 2);
 
 	// Will remove thread since it exited
-	controller.handleBreakpoint(ev);
-	ASSERT_EQ(controller.m_nActiveThreads, 1);
+	cur.handleBreakpoint(ev);
+	ASSERT_EQ(cur.m_nThreads, 1);
 }
 
 TEST(controllerThreadScheduling, DEADLINE_REALTIME_MS(10000))
@@ -136,16 +138,18 @@ TEST(controllerThreadScheduling, DEADLINE_REALTIME_MS(10000))
 	EXPECT_CALL(ptrace, loadRegisters(_,_))
 		.Times(AtLeast(1));
 
-	ASSERT_EQ(controller.m_curThread, 0);
-	controller.continueExecution();
-	ASSERT_EQ(controller.m_curThread, 1);
+	Session cur(controller, controller.m_nThreads, controller.m_threads);
+
+	ASSERT_EQ(cur.m_curThread, 0);
+	cur.continueExecution();
+	ASSERT_EQ(cur.m_curThread, 1);
 
 	int level = controller.lockScheduler();
 	ASSERT_EQ(level, 0);
 
 	// Should not have changed thread
-	controller.continueExecution();
-	ASSERT_EQ(controller.m_curThread, 1);
+	cur.continueExecution();
+	ASSERT_EQ(cur.m_curThread, 1);
 
 	controller.unlockScheduler(level);
 }
