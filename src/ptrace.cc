@@ -30,6 +30,10 @@ public:
 		pid_t child, who;
 		int status;
 
+		m_breakpointToAddrMap.clear();
+		m_addrToBreakpointMap.clear();
+		m_instructionMap.clear();
+
 		child = fork();
 		if (child < 0) {
 			error("fork failed!\n");
