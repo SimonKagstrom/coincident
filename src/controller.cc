@@ -401,7 +401,9 @@ bool Session::run()
 				it != m_owner.m_breakpoints.end(); it++) {
 			void *p = it->first;
 
-			ptrace.setBreakpoint(p);
+			int id = ptrace.setBreakpoint(p);
+			if (id < 0)
+				error("Can't set breakpoint!\n");
 		}
 
 		// Select an initial thread and load its registers
