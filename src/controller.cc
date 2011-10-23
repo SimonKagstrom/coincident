@@ -75,8 +75,6 @@ public:
 	ThreadData *m_threads[N_THREADS];
 	IThreadSelector *m_selector;
 
-	int m_curPid;
-
 	functionMap_t m_functions;
 	breakpointMap_t m_breakpoints;
 
