@@ -205,6 +205,7 @@ public:
 	void kill(int pid)
 	{
 		ptrace(PTRACE_KILL, pid, 0, 0);
+		ptrace(PTRACE_DETACH, pid, 0, 0);
 	}
 
 private:
