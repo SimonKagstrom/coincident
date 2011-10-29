@@ -1,4 +1,5 @@
 #include <coincident/controller.hh>
+#include <coincident/coincident.h>
 #include <ptrace.hh>
 #include <utils.hh>
 #include <elf.hh>
@@ -439,4 +440,32 @@ IController &IController::getInstance()
 		instance = new Controller();
 
 	return *instance;
+}
+
+
+int coincident_add_thread(int (*fn)(void *), void *priv)
+{
+	if (IController::getInstance().addThread(fn, priv) == false)
+		return -1;
+
+	// FIXME: Should return the thread ID!
+	return 0;
+}
+
+void coincident_set_run_limit(int n_runs)
+{
+	IController::getInstance().setRuns(n_runs);
+}
+
+void coincident_set_time_limit(int n_ms)
+{
+	IController::getInstance().setTimeLimit(n_ms);
+}
+
+int coincident_run(void)
+{
+	if (IController::getInstance().run() == false)
+		return 1;
+
+	return 0;
 }
