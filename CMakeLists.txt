@@ -10,23 +10,30 @@ set (PROJECT_VERSION_MINOR  0)
 set (PROJECT_VERSION_PATCH  0)
 set (PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
 
-set (TGT race-condition-finder)
+set (LIB coincident)
+set (TGT self-test)
+
 set (CMAKE_BUILD_TYPE debug)
 
-set (${TGT}_SRCS
-	self-test/main.cc
+set (${LIB}_SRCS
 	src/controller.cc
 	src/disassembly.cc
 	src/elf.cc
 	src/ptrace.cc
 	src/thread-ia32.cc
     )
+    
+set (${TGT}_SRCS
+	self-test/main.cc
+	)
 
-include_directories (${GLIB2_INCLUDE_DIRS})
 include_directories (src/include/)
 include_directories (/home/ska/local/include)
 link_directories (/home/ska/local/lib)
 
-add_executable (${PROJECT_NAME} ${${TGT}_SRCS})
 
-target_link_libraries(${TGT} ${glib2_LIBRARIES} udis86 elf)
+add_library (${LIB} ${${LIB}_SRCS})
+
+add_executable (${TGT} ${${TGT}_SRCS})
+
+target_link_libraries(${TGT} ${LIB} udis86 elf)
