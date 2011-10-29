@@ -1,4 +1,4 @@
-#include <controller.hh>
+#include <coincident/controller.hh>
 #include <stdio.h>
 
 static int fn_a(void *params)
