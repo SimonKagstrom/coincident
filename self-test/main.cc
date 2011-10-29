@@ -1,4 +1,4 @@
-#include <coincident/controller.hh>
+#include <coincident/coincident.h>
 #include <stdio.h>
 
 static int fn_a(void *params)
@@ -15,13 +15,10 @@ static int fn_b(void *params)
 
 int main(int argc, const char *argv[])
 {
-	IController &controller = IController::getInstance();
+	coincident_add_thread(fn_a, NULL);
+	coincident_add_thread(fn_b, NULL);
 
-	controller.addThread(fn_a, NULL);
-	controller.addThread(fn_b, NULL);
+	coincident_set_run_limit(2);
 
-	controller.setRuns(2);
-	controller.run();
-
-	return 0;
+	return coincident_run();
 }
