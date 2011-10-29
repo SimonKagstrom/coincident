@@ -427,7 +427,7 @@ bool Session::run()
 		m_curPid = -1;
 	}
 
-	return true;
+	return m_nThreads == 0;
 }
 
 
