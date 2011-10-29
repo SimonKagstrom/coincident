@@ -36,4 +36,4 @@ add_library (${LIB} ${${LIB}_SRCS})
 
 add_executable (${TGT} ${${TGT}_SRCS})
 
-target_link_libraries(${TGT} ${LIB} udis86 elf)
+target_link_libraries(${TGT} ${LIB} udis86 elf gmock gtest crpcut)
