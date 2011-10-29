@@ -12,18 +12,18 @@ enum ptrace_event_type
 	ptrace_exit        =  4,
 };
 
+class PtraceEvent
+{
+public:
+	enum ptrace_event_type type;
+
+	int eventId; // Typically the breakpoint
+	void *addr;
+};
+
 class IPtrace
 {
 public:
-	class PtraceEvent
-	{
-	public:
-		enum ptrace_event_type type;
-
-		int eventId; // Typically the breakpoint
-		void *addr;
-	};
-
 	static IPtrace &getInstance();
 
 

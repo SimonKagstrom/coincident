@@ -1,7 +1,8 @@
 #pragma once
 
-#include <ptrace.hh>
 #include <stdint.h>
+
+class PtraceEvent;
 
 class IController
 {
@@ -12,7 +13,7 @@ public:
 		virtual int selectThread(int curThread,
 				int nThreads,
 				uint64_t timeUs,
-				const IPtrace::PtraceEvent *) = 0;
+				const PtraceEvent *) = 0;
 	};
 
 

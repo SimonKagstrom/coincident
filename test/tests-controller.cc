@@ -14,7 +14,7 @@ public:
 	MOCK_METHOD4(selectThread, int(int curThread,
 			int nThreads,
 			uint64_t timeUs,
-			const IPtrace::PtraceEvent *));
+			const PtraceEvent *));
 };
 
 TEST(controllerForkError, DEADLINE_REALTIME_MS(10000))
@@ -52,7 +52,7 @@ TEST(controllerRunChild, DEADLINE_REALTIME_MS(10000))
 		.Times(AtLeast(1))
 		.WillRepeatedly(Return(100));
 
-	IPtrace::PtraceEvent ev, evDefault;
+	PtraceEvent ev, evDefault;
 
 	evDefault.type = ptrace_exit;
 	evDefault.eventId = 0;
@@ -82,7 +82,7 @@ TEST(controllerTestThreadRemoval, DEADLINE_REALTIME_MS(10000))
 	Controller &controller = (Controller &)IController::getInstance();
 	MockPtrace &ptrace = (MockPtrace &)IPtrace::getInstance();
 
-	IPtrace::PtraceEvent ev;
+	PtraceEvent ev;
 
 	EXPECT_CALL(ptrace, singleStep(_))
 		.Times(AtLeast(1));
@@ -109,7 +109,7 @@ TEST(controllerThreadScheduling, DEADLINE_REALTIME_MS(10000))
 	Controller &controller = (Controller &)IController::getInstance();
 	MockPtrace &ptrace = (MockPtrace &)IPtrace::getInstance();
 
-	IPtrace::PtraceEvent ev;
+	PtraceEvent ev;
 
 	ev.type = ptrace_breakpoint;
 	ev.eventId = 100;

@@ -19,7 +19,7 @@ public:
 	int selectThread(int curThread,
 			int nThreads,
 			uint64_t timeUs,
-			const IPtrace::PtraceEvent *ev)
+			const PtraceEvent *ev)
 	{
 		return rand() % nThreads;
 	}
@@ -94,7 +94,7 @@ public:
 
 	void removeThread(int pid, int which);
 
-	bool handleBreakpoint(const IPtrace::PtraceEvent &ev);
+	bool handleBreakpoint(const PtraceEvent &ev);
 
 	bool continueExecution();
 
@@ -299,7 +299,7 @@ void Session::removeThread(int pid, int which)
 		IPtrace::getInstance().loadRegisters(pid, m_threads[0]->getRegs());
 }
 
-bool Session::handleBreakpoint(const IPtrace::PtraceEvent &ev)
+bool Session::handleBreakpoint(const PtraceEvent &ev)
 {
 	IFunction *function = m_owner.m_functions[ev.addr];
 	IPtrace &ptrace = IPtrace::getInstance();
@@ -355,7 +355,7 @@ bool Session::handleBreakpoint(const IPtrace::PtraceEvent &ev)
 
 bool Session::continueExecution()
 {
-	const IPtrace::PtraceEvent ev = IPtrace::getInstance().continueExecution(m_curPid);
+	const PtraceEvent ev = IPtrace::getInstance().continueExecution(m_curPid);
 
 	switch (ev.type) {
 	case ptrace_error:
