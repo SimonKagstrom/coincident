@@ -20,7 +20,7 @@ int main(int argc, const char *argv[])
 	controller.addThread(fn_a, NULL);
 	controller.addThread(fn_b, NULL);
 
-	controller.setRuns(1);
+	controller.setRuns(2);
 	controller.run();
 
 	return 0;
