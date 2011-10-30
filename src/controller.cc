@@ -67,17 +67,17 @@ public:
 
 	uint64_t getTimeStamp(uint64_t start);
 
-	typedef std::map<void *, IFunction *> functionMap_t;
-	typedef std::map<int, IFunction *> functionBreakpointMap_t;
-	typedef std::map<void *, int> breakpointMap_t;
+	typedef std::map<void *, IFunction *> FunctionMap_t;
+	typedef std::map<int, IFunction *> FunctionBreakpointMap_t;
+	typedef std::map<void *, int> BreakpointMap_t;
 
 
 	int m_nThreads;
 	ThreadData *m_threads[N_THREADS];
 	IThreadSelector *m_selector;
 
-	functionMap_t m_functions;
-	breakpointMap_t m_breakpoints;
+	FunctionMap_t m_functions;
+	BreakpointMap_t m_breakpoints;
 
 	uint64_t m_startTimeStamp;
 
@@ -133,7 +133,7 @@ Controller::Controller()
 
 
 	// Setup function breakpoints
-	for (functionMap_t::iterator it = m_functions.begin();
+	for (FunctionMap_t::iterator it = m_functions.begin();
 			it != m_functions.end(); it++) {
 		IFunction *cur = it->second;
 
@@ -399,7 +399,7 @@ bool Session::run()
 		// Parent
 		bool should_quit;
 
-		for (Controller::breakpointMap_t::iterator it = m_owner.m_breakpoints.begin();
+		for (Controller::BreakpointMap_t::iterator it = m_owner.m_breakpoints.begin();
 				it != m_owner.m_breakpoints.end(); it++) {
 			void *p = it->first;
 
