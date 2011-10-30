@@ -65,9 +65,16 @@ public:
 
 	void cleanup();
 
+	bool registerFunctionHandler(void *functionAddress,
+			IFunctionHandler *handler);
+
+	bool unregisterFunctionHandler(void *functionAddress);
+
+
 	uint64_t getTimeStamp(uint64_t start);
 
 	typedef std::map<void *, IFunction *> FunctionMap_t;
+	typedef std::map<void *, IFunctionHandler *> FunctionHandlerMap_t;
 	typedef std::map<int, IFunction *> FunctionBreakpointMap_t;
 	typedef std::map<void *, int> BreakpointMap_t;
 
@@ -77,6 +84,7 @@ public:
 	IThreadSelector *m_selector;
 
 	FunctionMap_t m_functions;
+	FunctionHandlerMap_t m_functionHandlers;
 	BreakpointMap_t m_breakpoints;
 
 	uint64_t m_startTimeStamp;
@@ -86,12 +94,12 @@ public:
 	uint64_t m_timeLimit;
 };
 
-class Session
+class Session : public Controller::IFunctionHandler
 {
 public:
 	Session(Controller &owner, int nThreads, Controller::ThreadData **threads);
 
-	~Session();
+	virtual ~Session();
 
 	void removeThread(int pid, int which);
 
@@ -99,13 +107,30 @@ public:
 
 	bool continueExecution();
 
+	void switchThread(const PtraceEvent &ev);
+
 	bool run();
 
+
+	class ExitHandler : public Controller::IFunctionHandler
+	{
+	public:
+		ExitHandler(Session &owner);
+
+		bool handle(IThread *cur, void *addr, const PtraceEvent &ev);
+	private:
+		Session &m_owner;
+	};
+
+	// Default handler
+	bool handle(IThread *cur, void *addr, const PtraceEvent &ev);
 
 	// Thread exit handler (just a marker)
 	static void threadExit();
 
 	Controller &m_owner;
+
+	ExitHandler m_exitHandler;
 	int m_nThreads;
 	int m_curPid;
 	int m_curThread;
@@ -192,6 +217,28 @@ void Controller::unlockScheduler(int level)
 	m_schedulerLock = level;
 }
 
+
+bool Controller::registerFunctionHandler(void *functionAddress,
+			IFunctionHandler *handler)
+{
+	if (m_functions.find(functionAddress) == m_functions.end())
+		return false;
+
+	m_functionHandlers[functionAddress] = handler;
+
+	return true;
+}
+
+bool Controller::unregisterFunctionHandler(void *functionAddress)
+{
+	if (m_functionHandlers.find(functionAddress) == m_functionHandlers.end())
+		return false;
+
+	m_functionHandlers.erase(functionAddress);
+
+	return true;
+}
+
 bool Controller::run()
 {
 	int runsLeft = -1;
@@ -252,7 +299,7 @@ uint64_t Controller::getTimeStamp(uint64_t start)
 
 
 Session::Session(Controller &owner, int nThreads, Controller::ThreadData **threads) :
-						m_owner(owner), m_nThreads(nThreads)
+						m_owner(owner), m_nThreads(nThreads), m_exitHandler(*this)
 {
 	m_threads = new IThread*[m_nThreads];
 	m_curThread = 0;
@@ -264,6 +311,9 @@ Session::Session(Controller &owner, int nThreads, Controller::ThreadData **threa
 		m_threads[i] = &IThread::createThread(Session::threadExit,
 				p->m_fn, p->m_priv);
 	}
+
+	m_owner.registerFunctionHandler((void *)Session::threadExit,
+			&m_exitHandler);
 }
 
 Session::~Session()
@@ -272,6 +322,8 @@ Session::~Session()
 		IThread::releaseThread(*m_threads[i]);
 
 	delete[] m_threads;
+
+	m_owner.unregisterFunctionHandler((void *)Session::threadExit);
 }
 
 // Thread exit handler (just a marker)
@@ -300,6 +352,50 @@ void Session::removeThread(int pid, int which)
 		IPtrace::getInstance().loadRegisters(pid, m_threads[0]->getRegs());
 }
 
+Session::ExitHandler::ExitHandler(Session &owner) : m_owner(owner)
+{
+}
+
+bool Session::ExitHandler::handle(IThread *cur, void *addr, const PtraceEvent &ev)
+{
+	m_owner.removeThread(m_owner.m_curPid, m_owner.m_curThread);
+
+	if (m_owner.m_nThreads == 0)
+		return false;
+
+	m_owner.switchThread(ev);
+
+	return true;
+}
+
+bool Session::handle(IThread *cur, void *addr, const PtraceEvent &ev)
+{
+	IFunction *function = m_owner.m_functions[addr];
+	IPtrace &ptrace = IPtrace::getInstance();
+
+	// Visited a function for the first time, setup breakpoints
+	if (ptrace.clearBreakpoint(ev.eventId) == false) {
+		error("Can't clear function breakpoint???");
+
+		return false;
+	}
+
+	m_owner.m_breakpoints.erase(function->getEntry());
+
+	std::list<void *> refs = function->getMemoryRefs();
+
+	for (std::list<void *>::iterator it = refs.begin();
+			it != refs.end(); it++) {
+		if (ptrace.setBreakpoint(*it) < 0)
+			error("Can't set breakpoint???");
+
+		m_owner.m_breakpoints[*it] = 1;
+	}
+
+	return true;
+}
+
+
 bool Session::handleBreakpoint(const PtraceEvent &ev)
 {
 	IFunction *function = m_owner.m_functions[ev.addr];
@@ -308,36 +404,29 @@ bool Session::handleBreakpoint(const PtraceEvent &ev)
 	// Step to next instruction
 	ptrace.singleStep(m_curPid);
 
-	if (function && function->getEntry() == (void *)Session::threadExit) {
-		removeThread(m_curPid, m_curThread);
+	if (function) {
+		// Assume default handler
+		IFunctionHandler *handler = this;
 
-		if (m_nThreads == 0)
-			return true;
-		// Re-select the thread
-	} else if (function) {
-		// Visited a function for the first time, setup breakpoints
-		if (ptrace.clearBreakpoint(ev.eventId) == false)
-			error("Can't clear function breakpoint???");
+		Controller::FunctionHandlerMap_t::iterator it = m_owner.m_functionHandlers.find(ev.addr);
+		if (it != m_owner.m_functionHandlers.end())
+			handler = it->second;
 
-		m_owner.m_breakpoints.erase(function->getEntry());
-
-		std::list<void *> refs = function->getMemoryRefs();
-
-		for (std::list<void *>::iterator it = refs.begin();
-				it != refs.end(); it++) {
-			if (ptrace.setBreakpoint(*it) < 0)
-				error("Can't set breakpoint???");
-
-			m_owner.m_breakpoints[*it] = 1;
-		}
-
-		return true;
+		return handler->handle(m_threads[m_curThread], ev.addr, ev);
 	}
 
 	// No reschedules if this is set
 	if (m_owner.m_schedulerLock)
 		return true;
 
+	switchThread(ev);
+
+	return true;
+}
+
+void Session::switchThread(const PtraceEvent &ev)
+{
+	IPtrace &ptrace = IPtrace::getInstance();
 	int nextThread;
 
 	nextThread = m_owner.m_selector->selectThread(m_curThread, m_nThreads,
@@ -350,8 +439,6 @@ bool Session::handleBreakpoint(const PtraceEvent &ev)
 
 		m_curThread = nextThread;
 	}
-
-	return true;
 }
 
 bool Session::continueExecution()
