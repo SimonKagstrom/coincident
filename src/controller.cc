@@ -403,6 +403,7 @@ bool Session::handleBreakpoint(const PtraceEvent &ev)
 
 	// Step to next instruction
 	ptrace.singleStep(m_curPid);
+	ptrace.saveRegisters(m_curPid, m_threads[m_curThread]->getRegs());
 
 	if (function) {
 		// Assume default handler
@@ -434,7 +435,6 @@ void Session::switchThread(const PtraceEvent &ev)
 
 	// Perform the actual thread switch
 	if (nextThread != m_curThread) {
-		ptrace.saveRegisters(m_curPid, m_threads[m_curThread]->getRegs());
 		ptrace.loadRegisters(m_curPid, m_threads[nextThread]->getRegs());
 
 		m_curThread = nextThread;
