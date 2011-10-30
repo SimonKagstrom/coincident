@@ -14,15 +14,12 @@
 class Function : public IFunction, IDisassembly::IInstructionListener
 {
 public:
-	Function(IElf::IFunctionListener *listener,
-			const char *name, void *addr, size_t size)
+	Function(const char *name, void *addr, size_t size)
 	{
 		m_name = xstrdup(name);
 		m_size = size;
 		m_entry = addr;
 		m_data = new uint8_t[m_size];
-
-		listener->onFunction(*this);
 	}
 
 	virtual ~Function()
@@ -44,6 +41,16 @@ public:
 	void *getEntry()
 	{
 		return m_entry;
+	}
+
+	void setAddress(void *addr)
+	{
+		m_entry = addr;
+	}
+
+	void setSize(size_t size)
+	{
+		m_size = size;
 	}
 
 	std::list<void *> &getMemoryRefs()
@@ -152,6 +159,30 @@ public:
 			/* Handle symbols */
 			if (shdr->sh_type == SHT_SYMTAB)
 				handleSymtab(scn);
+			if (shdr->sh_type == SHT_DYNSYM)
+				handleDynsym(scn);
+		}
+		elf_end(m_elf);
+		if (!(m_elf = elf_begin(fd, ELF_C_READ, NULL)) ) {
+				error("elf_begin failed on %s\n", filename);
+				goto out_open;
+		}
+		while ( (scn = elf_nextscn(m_elf, scn)) != NULL )
+		{
+			Elf32_Shdr *shdr = elf32_getshdr(scn);
+			char *name = elf_strptr(m_elf, shstrndx, shdr->sh_name);
+
+			// .rel.plt
+			if (shdr->sh_type == SHT_REL && strcmp(name, ".rel.plt") == 0)
+				handleRelPlt(scn);
+		}
+		m_fixupFunctions.clear();
+		for (FunctionsByAddress_t::iterator it = m_functionsByAddress.begin();
+				it != m_functionsByAddress.end();
+				it++) {
+			Function *fn = it->second;
+
+			m_listener->onFunction(*fn);
 		}
 
 		ret = true;
@@ -175,6 +206,55 @@ out_open:
 	}
 
 private:
+	typedef std::map<int, Function *> FixupMap_t;
+
+	void *offsetTableToAddress(Elf32_Addr addr)
+	{
+		/*
+		 * The .got.plt table contains a pointer to the push instruction
+		 * below:
+		 *
+		 *  08070f10 <pthread_self@plt>:
+		 *   8070f10:       ff 25 58 93 0b 08       jmp    *0x80b9358
+		 *   8070f16:       68 b0 06 00 00          push   $0x6b0
+		 *
+		 * so to get the entry point, we rewind the pointer to the start
+		 * of the jmp.
+		 */
+		return (void *)(addr - 6);
+	}
+
+	void handleRelPlt(Elf_Scn *scn)
+	{
+		Elf32_Shdr *shdr = elf32_getshdr(scn);
+		Elf_Data *data = elf_getdata(scn, NULL);
+		Elf32_Rel *r = (Elf32_Rel *)data->d_buf;
+		int n = data->d_size / sizeof(Elf32_Rel);
+
+		panic_if(n <= 0,
+				"Section data too small (%zd) - no symbols\n",
+				data->d_size);
+
+		for (int i = 0; i < n; i++, r++) {
+			Elf32_Addr *got_plt = (Elf32_Addr *)r->r_offset;
+
+			FixupMap_t::iterator it = m_fixupFunctions.find(ELF32_R_SYM(r->r_info));
+
+			if (it == m_fixupFunctions.end())
+				continue;
+			Function *fn = it->second;
+
+			fn->setAddress(offsetTableToAddress(*got_plt));
+			fn->setSize(1);
+			m_functionsByAddress[fn->getEntry()] = fn;
+		}
+	}
+
+	void handleDynsym(Elf_Scn *scn)
+	{
+		handleSymtab(scn);
+	}
+
 	void handleSymtab(Elf_Scn *scn)
 	{
 		Elf32_Shdr *shdr = elf32_getshdr(scn);
@@ -199,10 +279,14 @@ private:
 			if ( type == STT_FUNC) {
 				Elf32_Addr addr = s->st_value;
 				Elf32_Word size = s->st_size;
-				IFunction *fn = new Function(m_listener, sym_name, (void *)addr, size);
+				Function *fn = new Function(sym_name, (void *)addr, size);
 
-				m_functionsByAddress[(void *)addr] = fn;
 				m_functionsByName[std::string(sym_name)] = fn;
+				// Needs fixup?
+				if (shdr->sh_type == SHT_DYNSYM && size == 0)
+					m_fixupFunctions[i] = fn;
+				else
+					m_functionsByAddress[(void *)addr] = fn;
 			}
 
 			s++;
@@ -210,6 +294,8 @@ private:
 	}
 	std::map<std::string, IFunction *> m_functionsByName;
 	std::map<void *, IFunction *> m_functionsByAddress;
+
+	FixupMap_t m_fixupFunctions;
 
 	Elf *m_elf;
 	IFunctionListener *m_listener;
