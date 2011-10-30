@@ -15,11 +15,11 @@ class Function : public IFunction, IDisassembly::IInstructionListener
 {
 public:
 	Function(IElf::IFunctionListener *listener,
-			const char *name, Elf32_Sym *sym)
+			const char *name, void *addr, size_t size)
 	{
 		m_name = xstrdup(name);
-		m_size = sym->st_size;
-		m_entry = (void *)sym->st_value;
+		m_size = size;
+		m_entry = addr;
 		m_data = new uint8_t[m_size];
 
 		listener->onFunction(*this);
@@ -197,9 +197,11 @@ private:
 
 			/* Ohh... This is an interesting symbol, add it! */
 			if ( type == STT_FUNC) {
-				IFunction *fn = new Function(m_listener, sym_name, s);
+				Elf32_Addr addr = s->st_value;
+				Elf32_Word size = s->st_size;
+				IFunction *fn = new Function(m_listener, sym_name, (void *)addr, size);
 
-				m_functionsByAddress[(void *)s->st_value] = fn;
+				m_functionsByAddress[(void *)addr] = fn;
 				m_functionsByName[std::string(sym_name)] = fn;
 			}
 
