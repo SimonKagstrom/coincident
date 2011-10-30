@@ -81,6 +81,7 @@ TESTSUITE(coincident)
 	{
 		srand(time(NULL));
 
+		coincident_add_thread(test_race, NULL);
 		coincident_add_thread(test_non_race, NULL);
 		coincident_add_thread(test_non_race, NULL);
 
