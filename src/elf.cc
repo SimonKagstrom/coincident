@@ -206,6 +206,8 @@ out_open:
 	}
 
 private:
+	typedef std::map<std::string, Function *> FunctionsByName_t;
+	typedef std::map<void *, Function *> FunctionsByAddress_t;
 	typedef std::map<int, Function *> FixupMap_t;
 
 	void *offsetTableToAddress(Elf32_Addr addr)
@@ -292,9 +294,9 @@ private:
 			s++;
 		}
 	}
-	std::map<std::string, IFunction *> m_functionsByName;
-	std::map<void *, IFunction *> m_functionsByAddress;
 
+	FunctionsByName_t m_functionsByName;
+	FunctionsByAddress_t m_functionsByAddress;
 	FixupMap_t m_fixupFunctions;
 
 	Elf *m_elf;
