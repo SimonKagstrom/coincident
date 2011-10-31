@@ -29,6 +29,7 @@ public:
 
 	virtual bool readMemory(uint8_t *dst, void *start, size_t bytes) = 0;
 
+	virtual bool readProcessMemory(uint8_t *dst, void *start, size_t bytes) = 0;
 
 	/**
 	 * Set a breakpoint
