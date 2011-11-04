@@ -2,6 +2,7 @@
 
 #include <thread.hh>
 #include <utils.hh>
+#include <ptrace.hh>
 
 #include <sys/user.h>
 
@@ -37,6 +38,23 @@ public:
 	void *getRegs()
 	{
 		return (void *)&m_regs;
+	}
+
+	void saveRegisters()
+	{
+		IPtrace &ptrace = IPtrace::getInstance();
+
+		ptrace.saveRegisters(&m_regs);
+		// The breakpoint points to the instruction AFTER the breakpoint
+		m_regs.eip--;
+	}
+
+	void stepOverBreakpoint()
+	{
+		IPtrace &ptrace = IPtrace::getInstance();
+
+		ptrace.singleStep();
+		ptrace.saveRegisters(&m_regs);
 	}
 
 private:

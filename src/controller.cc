@@ -373,9 +373,7 @@ bool Session::handle(IThread *cur, void *addr, const PtraceEvent &ev)
 	IFunction *function = m_owner.m_functions[addr];
 	IPtrace &ptrace = IPtrace::getInstance();
 
-	// Step to next instruction
-	ptrace.singleStep();
-
+	m_threads[m_curThread]->stepOverBreakpoint();
 	// Visited a function for the first time, setup breakpoints
 	if (ptrace.clearBreakpoint(ev.eventId) == false) {
 		error("Can't clear function breakpoint???");
@@ -402,11 +400,8 @@ bool Session::handle(IThread *cur, void *addr, const PtraceEvent &ev)
 bool Session::handleBreakpoint(const PtraceEvent &ev)
 {
 	IFunction *function = m_owner.m_functions[ev.addr];
-	IPtrace &ptrace = IPtrace::getInstance();
 
-	// Step to next instruction
-	ptrace.singleStep();
-	ptrace.saveRegisters(m_threads[m_curThread]->getRegs());
+	m_threads[m_curThread]->saveRegisters();
 
 	if (function) {
 		// Assume default handler
@@ -418,6 +413,9 @@ bool Session::handleBreakpoint(const PtraceEvent &ev)
 
 		return handler->handle(m_threads[m_curThread], ev.addr, ev);
 	}
+
+	// Step to next instruction
+	m_threads[m_curThread]->stepOverBreakpoint();
 
 	// No reschedules if this is set
 	if (m_owner.m_schedulerLock)

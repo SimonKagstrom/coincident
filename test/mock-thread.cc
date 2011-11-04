@@ -14,6 +14,8 @@ public:
 	}
 
 	MOCK_METHOD0(getRegs, void *());
+	MOCK_METHOD0(stepOverBreakpoint, void());
+	MOCK_METHOD0(saveRegisters, void());
 
 	uint8_t m_regs[8];
 };
