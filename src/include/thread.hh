@@ -6,6 +6,16 @@ public:
 	// getRegs should only be used by Session
 	friend class Session;
 
+	/**
+	 * Return function call argument number @a n
+	 *
+	 * @param n the argument to return
+	 *
+	 * @return the argument value, or gibberish if called outside function
+	 * entry point context, or on an argument which doesn't exist
+	 */
+	virtual unsigned long getArgument(int n) = 0;
+
 	virtual void stepOverBreakpoint() = 0;
 
 	virtual void saveRegisters() = 0;

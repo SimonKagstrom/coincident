@@ -40,6 +40,18 @@ public:
 		return (void *)&m_regs;
 	}
 
+	unsigned long getArgument(int n)
+	{
+		uint8_t *sp = (uint8_t *)m_regs.esp;
+		unsigned long out;
+
+		// The return address is at the top of the stack
+		IPtrace::getInstance().readProcessMemory((uint8_t *)&out,
+				sp + (1 + n) * sizeof(unsigned long), sizeof(unsigned long));
+
+		return out;
+	}
+
 	void saveRegisters()
 	{
 		IPtrace &ptrace = IPtrace::getInstance();
