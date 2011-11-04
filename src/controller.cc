@@ -349,7 +349,7 @@ void Session::removeThread(int pid, int which)
 		m_curThread = 0;
 
 	if (m_nThreads > 0)
-		IPtrace::getInstance().loadRegisters(pid, m_threads[0]->getRegs());
+		IPtrace::getInstance().loadRegisters(m_threads[0]->getRegs());
 }
 
 Session::ExitHandler::ExitHandler(Session &owner) : m_owner(owner)
@@ -372,6 +372,9 @@ bool Session::handle(IThread *cur, void *addr, const PtraceEvent &ev)
 {
 	IFunction *function = m_owner.m_functions[addr];
 	IPtrace &ptrace = IPtrace::getInstance();
+
+	// Step to next instruction
+	ptrace.singleStep();
 
 	// Visited a function for the first time, setup breakpoints
 	if (ptrace.clearBreakpoint(ev.eventId) == false) {
@@ -402,8 +405,8 @@ bool Session::handleBreakpoint(const PtraceEvent &ev)
 	IPtrace &ptrace = IPtrace::getInstance();
 
 	// Step to next instruction
-	ptrace.singleStep(m_curPid);
-	ptrace.saveRegisters(m_curPid, m_threads[m_curThread]->getRegs());
+	ptrace.singleStep();
+	ptrace.saveRegisters(m_threads[m_curThread]->getRegs());
 
 	if (function) {
 		// Assume default handler
@@ -435,7 +438,7 @@ void Session::switchThread(const PtraceEvent &ev)
 
 	// Perform the actual thread switch
 	if (nextThread != m_curThread) {
-		ptrace.loadRegisters(m_curPid, m_threads[nextThread]->getRegs());
+		ptrace.loadRegisters(m_threads[nextThread]->getRegs());
 
 		m_curThread = nextThread;
 	}
@@ -443,7 +446,7 @@ void Session::switchThread(const PtraceEvent &ev)
 
 bool Session::continueExecution()
 {
-	const PtraceEvent ev = IPtrace::getInstance().continueExecution(m_curPid);
+	const PtraceEvent ev = IPtrace::getInstance().continueExecution();
 
 	switch (ev.type) {
 	case ptrace_error:
@@ -500,7 +503,7 @@ bool Session::run()
 				m_owner.getTimeStamp(m_owner.m_startTimeStamp), NULL);
 
 		void *regs = m_threads[m_curThread]->getRegs();
-		IPtrace::getInstance().loadRegisters(m_curPid, regs);
+		IPtrace::getInstance().loadRegisters(regs);
 
 		do {
 			should_quit = !continueExecution();
@@ -510,7 +513,7 @@ bool Session::run()
 				break;
 		} while (!should_quit);
 
-		ptrace.kill(m_curPid);
+		ptrace.kill();
 		m_curPid = -1;
 	}
 

@@ -50,25 +50,23 @@ public:
 	virtual int forkAndAttach() = 0;
 
 
-	virtual void loadRegisters(int pid, void *regs) = 0;
+	virtual void loadRegisters(void *regs) = 0;
 
-	virtual void saveRegisters(int pid, void *regs) = 0;
+	virtual void saveRegisters(void *regs) = 0;
 
 	/**
 	 * Step over to the next instruction.
 	 *
 	 * Does not invoke the breakpoint listener
 	 */
-	virtual void singleStep(int pid) = 0;
+	virtual void singleStep() = 0;
 
 	/**
 	 * Continue execution until next breakpoint.
 	 *
-	 * @param pid the process to continue
-	 *
 	 * @return the event the execution stopped at.
 	 */
-	virtual const PtraceEvent continueExecution(int pid) = 0;
+	virtual const PtraceEvent continueExecution() = 0;
 
-	virtual void kill(int pid) = 0;
+	virtual void kill() = 0;
 };

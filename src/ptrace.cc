@@ -132,40 +132,40 @@ public:
 		return true;
 	}
 
-	void saveRegisters(int pid, void *regs)
+	void saveRegisters(void *regs)
 	{
-		ptrace(PTRACE_GETREGS, pid, 0, regs);
+		ptrace(PTRACE_GETREGS, m_child, 0, regs);
 	}
 
-	void loadRegisters(int pid, void *regs)
+	void loadRegisters(void *regs)
 	{
-		ptrace(PTRACE_SETREGS, pid, 0, regs);
+		ptrace(PTRACE_SETREGS, m_child, 0, regs);
 	}
 
-	void singleStep(int pid)
+	void singleStep()
 	{
 		struct user_regs_struct regs;
 		void *pc;
 
-		ptrace(PTRACE_GETREGS, pid, 0, &regs);
+		ptrace(PTRACE_GETREGS, m_child, 0, &regs);
 		pc = getPcFromRegs(&regs);
 
 		panic_if(m_instructionMap.find(pc) == m_instructionMap.end(),
 				"Single-step over no breakpoint at %p", pc);
 
-		writeByte(pid, pc, m_instructionMap[pc]);
+		writeByte(m_child, pc, m_instructionMap[pc]);
 
 		// Step back one instruction
 		regs.eip--;
-		ptrace(PTRACE_SETREGS, pid, 0, &regs);
+		ptrace(PTRACE_SETREGS, m_child, 0, &regs);
 
-		long res = ptrace(PTRACE_SINGLESTEP, pid, 0, NULL);
+		long res = ptrace(PTRACE_SINGLESTEP, m_child, 0, NULL);
 		panic_if(res < 0,
 				"ptrace singlestep failed!\n");
-		writeByte(pid, pc, 0xcc);
+		writeByte(m_child, pc, 0xcc);
 	}
 
-	const PtraceEvent continueExecution(int pid)
+	const PtraceEvent continueExecution()
 	{
 		PtraceEvent out;
 		int status;
@@ -177,11 +177,11 @@ public:
 		out.eventId = -1;
 		out.addr = NULL;
 
-		res = ptrace(PTRACE_CONT, pid, 0, 0);
+		res = ptrace(PTRACE_CONT, m_child, 0, 0);
 		if (res < 0)
 			return out;
 
-		who = waitpid(pid, &status, __WALL);
+		who = waitpid(m_child, &status, __WALL);
 		if (who == -1)
 			return out;
 
@@ -191,7 +191,7 @@ public:
 			if (WSTOPSIG(status) == SIGTRAP) {
 				out.type = ptrace_breakpoint;
 				out.eventId = -1;
-				out.addr = getPc(pid);
+				out.addr = getPc(m_child);
 
 				// Breakpoint id
 				addrToBreakpointMap_t::iterator it = m_addrToBreakpointMap.find(out.addr);
@@ -205,7 +205,7 @@ public:
 		}
 		// Thread died?
 		if (WIFSIGNALED(status) || WIFEXITED(status)) {
-			if (who == pid) {
+			if (who == m_child) {
 				out.type = ptrace_exit;
 				out.eventId = -1;
 				out.addr = NULL;
@@ -217,10 +217,10 @@ public:
 	}
 
 
-	void kill(int pid)
+	void kill()
 	{
-		ptrace(PTRACE_KILL, pid, 0, 0);
-		ptrace(PTRACE_DETACH, pid, 0, 0);
+		ptrace(PTRACE_KILL, m_child, 0, 0);
+		ptrace(PTRACE_DETACH, m_child, 0, 0);
 	}
 
 private:
