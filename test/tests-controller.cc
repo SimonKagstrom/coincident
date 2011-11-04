@@ -61,12 +61,12 @@ TEST(controllerRunChild, DEADLINE_REALTIME_MS(10000))
 	ev.eventId = 100;
 	ev.addr = NULL;
 
-	EXPECT_CALL(ptrace, continueExecution(_))
+	EXPECT_CALL(ptrace, continueExecution())
 		.Times(AtLeast(1))
 		.WillOnce(Return(ev))
 		.WillRepeatedly(Return(evDefault));
 
-	EXPECT_CALL(ptrace, singleStep(_))
+	EXPECT_CALL(ptrace, singleStep())
 		.Times(AtLeast(1));
 
 	// Add two threads
@@ -84,7 +84,7 @@ TEST(controllerTestThreadRemoval, DEADLINE_REALTIME_MS(10000))
 
 	PtraceEvent ev;
 
-	EXPECT_CALL(ptrace, singleStep(_))
+	EXPECT_CALL(ptrace, singleStep())
 		.Times(AtLeast(1));
 
 
@@ -115,11 +115,11 @@ TEST(controllerThreadScheduling, DEADLINE_REALTIME_MS(10000))
 	ev.eventId = 100;
 	ev.addr = (void *)(((unsigned long)test_thread) + 1); // No function!
 
-	EXPECT_CALL(ptrace, continueExecution(_))
+	EXPECT_CALL(ptrace, continueExecution())
 		.Times(AtLeast(1))
 		.WillRepeatedly(Return(ev));
 
-	EXPECT_CALL(ptrace, singleStep(_))
+	EXPECT_CALL(ptrace, singleStep())
 		.Times(AtLeast(1));
 
 	// Add two threads
@@ -133,9 +133,9 @@ TEST(controllerThreadScheduling, DEADLINE_REALTIME_MS(10000))
 		.Times(Exactly(1))
 		.WillOnce(Return(1));
 
-	EXPECT_CALL(ptrace, saveRegisters(_,_))
+	EXPECT_CALL(ptrace, saveRegisters(_))
 		.Times(AtLeast(1));
-	EXPECT_CALL(ptrace, loadRegisters(_,_))
+	EXPECT_CALL(ptrace, loadRegisters(_))
 		.Times(AtLeast(1));
 
 	Session cur(controller, controller.m_nThreads, controller.m_threads);
