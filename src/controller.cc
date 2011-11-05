@@ -452,13 +452,39 @@ void Session::switchThread(const PtraceEvent &ev)
 {
 	IPtrace &ptrace = IPtrace::getInstance();
 	int nextThread;
+	IThread *threads[m_nThreads];
+	int unblocked = 0;
+	int cur = m_curThread;
 
-	nextThread = m_owner.m_selector->selectThread(m_curThread,
-			m_threads, m_nThreads,
+	// Filter out unblocked threads
+	for (int i = 0; i < m_nThreads; i++) {
+		if (m_threads[i]->isBlocked())
+			continue;
+
+		threads[unblocked] = m_threads[i];
+
+		// Might not be the same
+		if (m_curThread == i)
+			cur = unblocked;
+
+		unblocked++;
+	}
+
+	nextThread = m_owner.m_selector->selectThread(cur,
+			threads, unblocked,
 			m_owner.getTimeStamp(m_owner.m_startTimeStamp), &ev);
 
 	// Perform the actual thread switch
-	if (nextThread != m_curThread) {
+	if (nextThread != cur) {
+
+		// Convert back to the blocked thread numbers
+		for (int i = 0; i < m_nThreads; i++) {
+			if (m_threads[i] == threads[nextThread]) {
+				nextThread = i;
+				break;
+			}
+		}
+
 		ptrace.loadRegisters(m_threads[nextThread]->getRegs());
 
 		m_curThread = nextThread;
