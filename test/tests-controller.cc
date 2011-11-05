@@ -140,6 +140,7 @@ TEST(controllerThreadScheduling, DEADLINE_REALTIME_MS(10000))
 		.Times(AtLeast(1));
 
 	Session cur(controller, controller.m_nThreads, controller.m_threads);
+	controller.m_curSession = &cur;
 
 	ASSERT_EQ(cur.m_curThread, 0);
 	cur.continueExecution();
@@ -153,4 +154,31 @@ TEST(controllerThreadScheduling, DEADLINE_REALTIME_MS(10000))
 	ASSERT_EQ(cur.m_curThread, 1);
 
 	controller.unlockScheduler(level);
+
+	// Test blocking threads
+	IThread *curThread = controller.getCurrentThread();
+	ASSERT_TRUE(curThread == cur.m_threads[cur.m_curThread]);
+
+	curThread->block();
+	ASSERT_TRUE(curThread->isBlocked() == true);
+	IThread *blockedThread = curThread;
+
+	// Only one thread is running
+	EXPECT_CALL(selector, selectThread(_,_,1,_,_))
+		.Times(Exactly(1))
+		.WillOnce(Return(0));
+
+	cur.continueExecution();
+	ASSERT_EQ(cur.m_curThread, 0);
+
+	// Should no longer be blocked
+	blockedThread->unBlock();
+	ASSERT_TRUE(blockedThread->isBlocked() == false);
+
+	EXPECT_CALL(selector, selectThread(_,_,2,_,_))
+		.Times(Exactly(1))
+		.WillOnce(Return(1));
+
+	cur.continueExecution();
+	ASSERT_EQ(cur.m_curThread, 1);
 }
