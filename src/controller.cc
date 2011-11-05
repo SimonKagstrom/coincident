@@ -62,6 +62,8 @@ public:
 
 	IThread *getCurrentThread();
 
+	void forceReschedule();
+
 	bool run();
 
 	void setRuns(int nRuns);
@@ -317,6 +319,21 @@ IThread *Controller::getCurrentThread()
 		return NULL;
 
 	return m_curSession->m_threads[m_curSession->m_curThread];
+}
+
+void Controller::forceReschedule()
+{
+	if (!m_curSession)
+		return;
+
+	PtraceEvent ev;
+
+	// Fake something
+	ev.type = ptrace_breakpoint;
+	ev.addr = NULL;
+	ev.eventId = 0;
+
+	m_curSession->switchThread(ev);
 }
 
 

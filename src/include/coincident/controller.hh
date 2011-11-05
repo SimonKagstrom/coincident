@@ -46,6 +46,8 @@ public:
 
 	virtual IThread *getCurrentThread() = 0;
 
+	virtual void forceReschedule() = 0;
+
 
 	virtual bool run() = 0;
 
