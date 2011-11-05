@@ -623,3 +623,9 @@ int coincident_run(void)
 
 	return 0;
 }
+
+void coincident_init(void)
+{
+	// Loads the ELF symbols
+	IController::getInstance();
+}

@@ -5,6 +5,15 @@ extern "C" {
 #endif
 
 /**
+ * Initialize coincident.
+ *
+ * Not strictly necessary, but if you have a forking test environment (such
+ * as crpcut), doing this at startup avoids re-reading the ELF symbols
+ * for every forked child.
+ */
+extern void coincident_init(void);
+
+/**
  * Add a thread to coincident.
  *
  * @param fn the function to execute
