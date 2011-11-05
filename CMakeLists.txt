@@ -16,6 +16,7 @@ set (TGT self-test)
 set (CMAKE_BUILD_TYPE debug)
 
 set (${LIB}_SRCS
+	src/apis/semaphore.cc
 	src/controller.cc
 	src/disassembly.cc
 	src/elf.cc

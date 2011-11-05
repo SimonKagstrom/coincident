@@ -13,6 +13,7 @@ set (${TEST_ELF}_SRCS
 )
 
 set (${TGT}_SRCS
+    ../src/apis/semaphore.cc
     ../src/disassembly.cc
     ../src/elf.cc
     main.cc

@@ -1,6 +1,7 @@
 #include "test.hh"
 
 #include "../src/controller.cc"
+#include "../src/apis/semaphore.hh"
 #include "mock-ptrace.hh"
 
 static int test_thread(void *priv)
@@ -181,4 +182,80 @@ TEST(controllerThreadScheduling, DEADLINE_REALTIME_MS(10000))
 
 	cur.continueExecution();
 	ASSERT_EQ(cur.m_curThread, 1);
+}
+
+TEST(semaphores, DEADLINE_REALTIME_MS(10000))
+{
+	Controller &controller = (Controller &)IController::getInstance();
+	MockPtrace &ptrace = (MockPtrace &)IPtrace::getInstance();
+
+	PtraceEvent ev;
+
+	ev.type = ptrace_breakpoint;
+	ev.eventId = 100;
+	ev.addr = (void *)(((unsigned long)test_thread) + 1); // No function!
+
+	EXPECT_CALL(ptrace, continueExecution())
+		.Times(AtLeast(1))
+		.WillRepeatedly(Return(ev));
+
+	EXPECT_CALL(ptrace, singleStep())
+		.Times(AtLeast(1));
+
+	// Add two threads
+	controller.addThread(test_thread, NULL);
+	controller.addThread(test_thread, NULL);
+
+	MockThreadSelector selector;
+	controller.setThreadSelector(&selector);
+
+
+	Session cur(controller, controller.m_nThreads, controller.m_threads);
+	controller.m_curSession = &cur;
+
+	ASSERT_EQ(cur.m_curThread, 0);
+
+	IThread *curThread = controller.getCurrentThread();
+
+	// Binary semaphore
+	Semaphore sem(1);
+
+	EXPECT_CALL(selector, selectThread(_,_,_,_,_))
+		.Times(Exactly(1))
+		.WillOnce(Return(1));
+
+	// Should be OK
+	bool res = sem.tryWait();
+	ASSERT_TRUE(res == true);
+	ASSERT_TRUE(curThread->isBlocked() == false);
+
+	cur.continueExecution();
+	ASSERT_TRUE(cur.m_curThread == 1);
+
+	// Nothing will happen
+	res = sem.tryWait();
+	ASSERT_TRUE(res == false);
+
+	curThread = controller.getCurrentThread();
+	ASSERT_TRUE(curThread == cur.m_threads[1]);
+	ASSERT_TRUE(curThread->isBlocked() == false);
+
+	EXPECT_CALL(selector, selectThread(_,_,_,_,_))
+		.Times(Exactly(1))
+		.WillOnce(Return(0));
+
+	sem.wait();
+	ASSERT_TRUE(curThread->isBlocked() == true);
+	ASSERT_TRUE(cur.m_curThread == 0);
+
+	EXPECT_CALL(selector, selectThread(_,_,_,_,_))
+		.Times(Exactly(1))
+		.WillOnce(Return(0));
+
+	// Wake it up again (will force reschedule)
+	sem.signal();
+	ASSERT_TRUE(curThread->isBlocked() == false);
+
+	// Should have reached the max value (no reschedule)
+	sem.signal();
 }
