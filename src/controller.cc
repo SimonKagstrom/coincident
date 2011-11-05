@@ -18,6 +18,7 @@ class DefaultThreadSelector : public IController::IThreadSelector
 {
 public:
 	int selectThread(int curThread,
+			IThread **threads,
 			int nThreads,
 			uint64_t timeUs,
 			const PtraceEvent *ev)
@@ -452,7 +453,8 @@ void Session::switchThread(const PtraceEvent &ev)
 	IPtrace &ptrace = IPtrace::getInstance();
 	int nextThread;
 
-	nextThread = m_owner.m_selector->selectThread(m_curThread, m_nThreads,
+	nextThread = m_owner.m_selector->selectThread(m_curThread,
+			m_threads, m_nThreads,
 			m_owner.getTimeStamp(m_owner.m_startTimeStamp), &ev);
 
 	// Perform the actual thread switch
@@ -518,7 +520,7 @@ bool Session::run()
 		}
 
 		// Select an initial thread and load its registers
-		m_curThread = m_owner.m_selector->selectThread(0, m_nThreads,
+		m_curThread = m_owner.m_selector->selectThread(0, m_threads, m_nThreads,
 				m_owner.getTimeStamp(m_owner.m_startTimeStamp), NULL);
 
 		void *regs = m_threads[m_curThread]->getRegs();

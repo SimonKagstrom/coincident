@@ -18,6 +18,7 @@ public:
 	{
 	public:
 		virtual int selectThread(int curThread,
+				IThread **threads,
 				int nThreads,
 				uint64_t timeUs,
 				const PtraceEvent *) = 0;

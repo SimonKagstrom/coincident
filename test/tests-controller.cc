@@ -11,7 +11,8 @@ static int test_thread(void *priv)
 class MockThreadSelector : public Controller::IThreadSelector
 {
 public:
-	MOCK_METHOD4(selectThread, int(int curThread,
+	MOCK_METHOD5(selectThread, int(int curThread,
+			IThread **threads,
 			int nThreads,
 			uint64_t timeUs,
 			const PtraceEvent *));
@@ -129,7 +130,7 @@ TEST(controllerThreadScheduling, DEADLINE_REALTIME_MS(10000))
 	MockThreadSelector selector;
 
 	controller.setThreadSelector(&selector);
-	EXPECT_CALL(selector, selectThread(_,_,_,_))
+	EXPECT_CALL(selector, selectThread(_,_,_,_,_))
 		.Times(Exactly(1))
 		.WillOnce(Return(1));
 
