@@ -95,5 +95,7 @@ TESTSUITE(coincident)
 
 int main(int argc, const char *argv[])
 {
+	coincident_init();
+
 	return crpcut::run(argc, argv);
 }
