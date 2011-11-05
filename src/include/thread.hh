@@ -20,6 +20,14 @@ public:
 
 	virtual void saveRegisters() = 0;
 
+
+	virtual void block() = 0;
+
+	virtual void unBlock() = 0;
+
+	virtual bool isBlocked() = 0;
+
+
 	static IThread &createThread(void (*exitHook)(),
 			int (*fn)(void *), void *arg);
 

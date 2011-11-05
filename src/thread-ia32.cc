@@ -28,6 +28,8 @@ public:
 		m_regs.esp = (long)m_stack;
 		m_regs.eip = (long)fn;
 		m_regs.ebp = 0;
+
+		m_blocked = false;
 	}
 
 	virtual ~Thread()
@@ -69,6 +71,21 @@ public:
 		ptrace.saveRegisters(&m_regs);
 	}
 
+	void block()
+	{
+		m_blocked = true;
+	}
+
+	bool isBlocked()
+	{
+		return m_blocked;
+	}
+
+	void unBlock()
+	{
+		m_blocked = false;
+	}
+
 private:
 	void setupRegs()
 	{
@@ -95,8 +112,9 @@ private:
 	uint8_t *m_stack;
 	uint8_t *m_stackStart;
 	struct user_regs_struct m_regs;
-};
 
+	bool m_blocked;
+};
 
 // Yes, this is ugly.
 #include "thread.cc"
