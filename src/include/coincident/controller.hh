@@ -38,9 +38,12 @@ public:
 	virtual bool unregisterFunctionHandler(void *functionAddress) = 0;
 
 
+	/* --- Mutual exclusion --- */
 	virtual int lockScheduler() = 0;
 
 	virtual void unlockScheduler(int level) = 0;
+
+	virtual IThread *getCurrentThread() = 0;
 
 
 	virtual bool run() = 0;

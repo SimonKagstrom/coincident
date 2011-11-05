@@ -26,6 +26,8 @@ public:
 	}
 };
 
+class Session;
+
 class Controller : public IController, IElf::IFunctionListener
 {
 public:
@@ -56,6 +58,8 @@ public:
 	int lockScheduler();
 
 	void unlockScheduler(int level);
+
+	IThread *getCurrentThread();
 
 	bool run();
 
@@ -92,6 +96,9 @@ public:
 	int m_schedulerLock;
 	int m_runLimit;
 	uint64_t m_timeLimit;
+
+	// Valid while non-NULL
+	Session *m_curSession;
 };
 
 class Session : public Controller::IFunctionHandler
@@ -151,6 +158,8 @@ Controller::Controller()
 
 	m_selector = new DefaultThreadSelector();
 	m_startTimeStamp = getTimeStamp(0);
+
+	m_curSession = NULL;
 
 	IElf &elf = IElf::getInstance();
 
@@ -252,6 +261,7 @@ bool Controller::run()
 	while (1) {
 		Session cur(*this, m_nThreads, m_threads);
 
+		m_curSession = &cur;
 		out = cur.run();
 		if (!out)
 			break;
@@ -267,6 +277,7 @@ bool Controller::run()
 				getTimeStamp(m_startTimeStamp) > m_timeLimit)
 			break;
 	}
+	m_curSession = NULL;
 
 	return out;
 }
@@ -296,6 +307,16 @@ uint64_t Controller::getTimeStamp(uint64_t start)
 	return (tv.tv_usec + tv.tv_sec * 1000 * 1000) - start;
 }
 
+IThread *Controller::getCurrentThread()
+{
+	if (!m_curSession)
+		return NULL;
+
+	if (m_curSession->m_nThreads == 0)
+		return NULL;
+
+	return m_curSession->m_threads[m_curSession->m_curThread];
+}
 
 
 Session::Session(Controller &owner, int nThreads, Controller::ThreadData **threads) :
