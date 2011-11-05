@@ -1,6 +1,6 @@
 #include "test.hh"
 
-#include <thread.hh>
+#include <coincident/thread.hh>
 
 
 class FakeThread

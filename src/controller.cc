@@ -1,9 +1,9 @@
 #include <coincident/controller.hh>
 #include <coincident/coincident.h>
+#include <coincident/thread.hh>
 #include <ptrace.hh>
 #include <utils.hh>
 #include <elf.hh>
-#include <thread.hh>
 #include <function.hh>
 
 #include <stdlib.h>

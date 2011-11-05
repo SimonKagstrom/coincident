@@ -1,6 +1,6 @@
 #include <stdint.h>
 
-#include <thread.hh>
+#include <coincident/thread.hh>
 #include <utils.hh>
 #include <ptrace.hh>
 
