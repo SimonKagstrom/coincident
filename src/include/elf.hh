@@ -2,24 +2,27 @@
 
 #include <sys/types.h>
 
-class IFunction;
-
-class IElf
+namespace coincident
 {
-public:
-	class IFunctionListener
+	class IFunction;
+
+	class IElf
 	{
 	public:
-		virtual void onFunction(IFunction &fn) = 0;
+		class IFunctionListener
+		{
+		public:
+			virtual void onFunction(IFunction &fn) = 0;
+		};
+
+		static IElf &getInstance();
+
+
+		virtual bool setFile(IFunctionListener *listener,
+				const char *filename) = 0;
+
+		virtual IFunction *functionByName(const char *name) = 0;
+
+		virtual IFunction *functionByAddress(void *addr) = 0;
 	};
-
-	static IElf &getInstance();
-
-
-	virtual bool setFile(IFunctionListener *listener,
-			const char *filename) = 0;
-
-	virtual IFunction *functionByName(const char *name) = 0;
-
-	virtual IFunction *functionByAddress(void *addr) = 0;
-};
+}

@@ -4,6 +4,8 @@
 #include "../src/apis/semaphore.hh"
 #include "mock-ptrace.hh"
 
+using namespace coincident;
+
 static int test_thread(void *priv)
 {
 	return 0;

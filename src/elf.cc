@@ -11,6 +11,8 @@
 #include <map>
 #include <string>
 
+using namespace coincident;
+
 class Function : public IFunction, IDisassembly::IInstructionListener
 {
 public:

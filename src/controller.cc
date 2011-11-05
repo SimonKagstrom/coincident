@@ -12,6 +12,8 @@
 #include <sys/wait.h>
 #include <map>
 
+using namespace coincident;
+
 #define N_THREADS 16
 
 class DefaultThreadSelector : public IController::IThreadSelector
@@ -27,12 +29,15 @@ public:
 	}
 };
 
-class Session;
+namespace coincident
+{
+	class Session;
+}
 
 class Controller : public IController, IElf::IFunctionListener
 {
 public:
-	friend class Session;
+	friend class coincident::Session;
 
 	class ThreadData
 	{
@@ -104,7 +109,7 @@ public:
 	Session *m_curSession;
 };
 
-class Session : public Controller::IFunctionHandler
+class coincident::Session : public Controller::IFunctionHandler
 {
 public:
 	Session(Controller &owner, int nThreads, Controller::ThreadData **threads);

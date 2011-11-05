@@ -3,6 +3,8 @@
 #include <coincident/controller.hh>
 #include <coincident/thread.hh>
 
+using namespace coincident;
+
 Semaphore::Semaphore(int maxValue, int startValue) :
 	m_maxValue(maxValue), m_value(startValue)
 {

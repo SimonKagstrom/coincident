@@ -3,14 +3,17 @@
 #include <stdint.h>
 #include <list>
 
-class IFunction
+namespace coincident
 {
-public:
-	virtual const char *getName() = 0;
+	class IFunction
+	{
+	public:
+		virtual const char *getName() = 0;
 
-	virtual void *getEntry() = 0;
+		virtual void *getEntry() = 0;
 
-	virtual size_t getSize() = 0;
+		virtual size_t getSize() = 0;
 
-	virtual std::list<void *> &getMemoryRefs() = 0;
-};
+		virtual std::list<void *> &getMemoryRefs() = 0;
+	};
+}

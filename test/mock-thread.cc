@@ -2,6 +2,7 @@
 
 #include <coincident/thread.hh>
 
+using namespace coincident;
 
 class FakeThread
 {

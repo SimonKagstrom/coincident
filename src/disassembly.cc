@@ -3,6 +3,8 @@
 
 #include <disassembly.hh>
 
+using namespace coincident;
+
 static int next_byte(ud_t *ud);
 
 class Disassembly : public IDisassembly

@@ -10,6 +10,8 @@
 #include <map>
 #include <list>
 
+using namespace coincident;
+
 class Ptrace : public IPtrace
 {
 public:

@@ -6,6 +6,8 @@
 
 #include <sys/user.h>
 
+using namespace coincident;
+
 extern "C" void cleanupAsm(void);
 
 class Thread : public IThread

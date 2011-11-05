@@ -1,22 +1,25 @@
 #include <list>
 
-class IThread;
-
-class Semaphore
+namespace coincident
 {
-public:
-	Semaphore(int maxValue, int startValue = 1);
+	class IThread;
 
-	void signal();
+	class Semaphore
+	{
+	public:
+		Semaphore(int maxValue, int startValue = 1);
 
-	void wait();
+		void signal();
 
-	bool tryWait();
+		void wait();
 
-private:
-	typedef std::list<IThread *> WaitList_t;
+		bool tryWait();
 
-	WaitList_t m_waitList;
-	int m_value;
-	int m_maxValue;
-};
+	private:
+		typedef std::list<IThread *> WaitList_t;
+
+		WaitList_t m_waitList;
+		int m_value;
+		int m_maxValue;
+	};
+}

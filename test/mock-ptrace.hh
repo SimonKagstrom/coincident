@@ -4,6 +4,8 @@
 
 #include <ptrace.hh>
 
+using namespace coincident;
+
 class MockPtrace : public IPtrace {
 public:
 	MockPtrace() { }

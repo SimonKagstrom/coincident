@@ -2,6 +2,8 @@
 
 #include <disassembly.hh>
 
+using namespace coincident;
+
 class DisassemblyHarness : public IDisassembly::IInstructionListener
 {
 public:
