@@ -73,7 +73,7 @@ public:
 		IDisassembly::getInstance().execute(this, m_data, m_size);
 	}
 
-	std::list<void *> &getMemoryLoads()
+	ReferenceList_t &getMemoryLoads()
 	{
 		if (!m_refsValid)
 			disassembleFunction();
@@ -81,7 +81,7 @@ public:
 		return m_loadList;
 	}
 
-	std::list<void *> &getMemoryStores()
+	ReferenceList_t &getMemoryStores()
 	{
 		if (!m_refsValid)
 			disassembleFunction();
@@ -115,8 +115,8 @@ private:
 	void *m_entry;
 	uint8_t *m_data;
 
-	std::list<void *> m_loadList;
-	std::list<void *> m_storeList;
+	ReferenceList_t m_loadList;
+	ReferenceList_t m_storeList;
 };
 
 class Elf : public IElf

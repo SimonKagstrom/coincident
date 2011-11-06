@@ -428,9 +428,9 @@ bool Session::handle(IThread *cur, void *addr, const PtraceEvent &ev)
 
 	m_owner.m_breakpoints.erase(function->getEntry());
 
-	std::list<void *> refs = function->getMemoryStores();
+	IFunction::ReferenceList_t refs = function->getMemoryStores();
 
-	for (std::list<void *>::iterator it = refs.begin();
+	for (IFunction::ReferenceList_t::iterator it = refs.begin();
 			it != refs.end(); it++) {
 		if (ptrace.setBreakpoint(*it) < 0)
 			error("Can't set breakpoint???");
