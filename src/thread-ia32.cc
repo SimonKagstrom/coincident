@@ -27,6 +27,7 @@ public:
 		setupRegs();
 
 		p[0] = (void *)exitHook; // Return address
+		p[1] = arg;
 		m_regs.esp = (long)m_stack;
 		m_regs.eip = (long)fn;
 		m_regs.ebp = 0;
