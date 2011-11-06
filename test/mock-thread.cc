@@ -59,6 +59,7 @@ public:
 	MOCK_METHOD0(getRegs, void *());
 	MOCK_METHOD0(stepOverBreakpoint, void());
 	MOCK_METHOD0(saveRegisters, void());
+	MOCK_METHOD1(setPc, void(void *));
 	MOCK_METHOD1(getArgument,unsigned long(int n));
 	MOCK_METHOD0(block, void());
 	MOCK_METHOD0(unBlock, void());

@@ -73,6 +73,11 @@ public:
 		ptrace.saveRegisters(&m_regs);
 	}
 
+	void setPc(void *addr)
+	{
+		m_regs.eip = (unsigned long)addr;
+	}
+
 	void block()
 	{
 		m_blocked = true;

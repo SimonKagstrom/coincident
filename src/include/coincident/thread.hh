@@ -24,6 +24,8 @@ namespace coincident
 
 		virtual void saveRegisters() = 0;
 
+		virtual void setPc(void *addr) = 0;
+
 
 		virtual void block() = 0;
 
