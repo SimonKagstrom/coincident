@@ -7,3 +7,6 @@ Coincident
 		coincident events" [syn: {coincident}, {coincidental},  
 		{coinciding}, {concurrent}, {co-occurrent},  
 		{cooccurring}, {simultaneous}]  
+
+Coincident is a race-condition finder that targets unit tests. It can
+find both locking problems and data races.
