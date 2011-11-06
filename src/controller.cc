@@ -476,7 +476,7 @@ void Session::switchThread(const PtraceEvent &ev)
 	int nextThread;
 	IThread *threads[m_nThreads];
 	int unblocked = 0;
-	int cur = m_curThread;
+	int cur = -1;
 
 	// Filter out unblocked threads
 	for (int i = 0; i < m_nThreads; i++) {
