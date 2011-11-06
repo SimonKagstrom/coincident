@@ -2,6 +2,7 @@
 #include <coincident/coincident.h>
 #include <coincident/thread.hh>
 #include <ptrace.hh>
+#include <apis.hh>
 #include <utils.hh>
 #include <elf.hh>
 #include <function.hh>
@@ -629,4 +630,6 @@ void coincident_init(void)
 {
 	// Loads the ELF symbols
 	IController::getInstance();
+
+	coincident_api_init_pthreads();
 }
