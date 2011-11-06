@@ -507,14 +507,13 @@ void Session::switchThread(const PtraceEvent &ev)
 			}
 		}
 
-		ptrace.loadRegisters(m_threads[nextThread]->getRegs());
-
 		m_curThread = nextThread;
 	}
 }
 
 bool Session::continueExecution()
 {
+	IPtrace::getInstance().loadRegisters(m_threads[m_curThread]->getRegs());
 	const PtraceEvent ev = IPtrace::getInstance().continueExecution();
 
 	switch (ev.type) {
@@ -570,9 +569,6 @@ bool Session::run()
 		// Select an initial thread and load its registers
 		m_curThread = m_owner.m_selector->selectThread(0, m_threads, m_nThreads,
 				m_owner.getTimeStamp(m_owner.m_startTimeStamp), NULL);
-
-		void *regs = m_threads[m_curThread]->getRegs();
-		IPtrace::getInstance().loadRegisters(regs);
 
 		do {
 			should_quit = !continueExecution();
