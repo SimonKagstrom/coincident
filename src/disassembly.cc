@@ -71,7 +71,8 @@ public:
 
 
 			if (mem)
-				listener->onMemoryReference(ud_insn_off(&m_ud), false);
+				listener->onMemoryReference(ud_insn_off(&m_ud),
+						m_ud.operand[1].type == UD_OP_MEM);
 
 			if (call)
 				listener->onCall(ud_insn_off(&m_ud));
