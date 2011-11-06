@@ -428,7 +428,7 @@ bool Session::handle(IThread *cur, void *addr, const PtraceEvent &ev)
 
 	m_owner.m_breakpoints.erase(function->getEntry());
 
-	std::list<void *> refs = function->getMemoryRefs();
+	std::list<void *> refs = function->getMemoryStores();
 
 	for (std::list<void *>::iterator it = refs.begin();
 			it != refs.end(); it++) {

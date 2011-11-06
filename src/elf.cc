@@ -18,6 +18,7 @@ class Function : public IFunction, IDisassembly::IInstructionListener
 public:
 	Function(const char *name, void *addr, size_t size)
 	{
+		m_refsValid = false;
 		m_name = xstrdup(name);
 		m_size = size;
 		m_entry = addr;
@@ -55,21 +56,37 @@ public:
 		m_size = size;
 	}
 
-	std::list<void *> &getMemoryRefs()
+	void disassembleFunction()
 	{
 		bool res = IPtrace::getInstance().readMemory(m_data,
 				m_entry, m_size);
 
-		m_memoryRefList.clear();
+		m_loadList.clear();
+		m_storeList.clear();
 
+		m_refsValid = true;
 		if (!res) {
 			error("Can't read memory at %p", m_entry);
-			return m_memoryRefList;
+			return;
 		}
 
 		IDisassembly::getInstance().execute(this, m_data, m_size);
+	}
 
-		return m_memoryRefList;
+	std::list<void *> &getMemoryLoads()
+	{
+		if (!m_refsValid)
+			disassembleFunction();
+
+		return m_loadList;
+	}
+
+	std::list<void *> &getMemoryStores()
+	{
+		if (!m_refsValid)
+			disassembleFunction();
+
+		return m_storeList;
 	}
 
 	// These three functions are the IInstructionListerners
@@ -77,7 +94,10 @@ public:
 	{
 		off_t addr = (off_t)m_entry + offset;
 
-		m_memoryRefList.push_back((void *)addr);
+		if (isLoad)
+			m_loadList.push_back((void *)addr);
+		else
+			m_storeList.push_back((void *)addr);
 	}
 
 	void onCall(off_t offset)
@@ -89,12 +109,14 @@ public:
 	}
 
 private:
+	bool m_refsValid;
 	const char *m_name;
 	size_t m_size;
 	void *m_entry;
 	uint8_t *m_data;
 
-	std::list<void *> m_memoryRefList;
+	std::list<void *> m_loadList;
+	std::list<void *> m_storeList;
 };
 
 class Elf : public IElf

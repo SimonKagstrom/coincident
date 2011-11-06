@@ -20,7 +20,7 @@ public:
 		{
 			m_map[std::string(fn.getName())]++;
 
-			std::list<void *> list = fn.getMemoryRefs();
+			std::list<void *> list = fn.getMemoryStores();
 			if (strcmp(fn.getName(), "vobb") == 0)
 				ASSERT_TRUE(list.size() > 0);
 		}

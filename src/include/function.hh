@@ -14,6 +14,8 @@ namespace coincident
 
 		virtual size_t getSize() = 0;
 
-		virtual std::list<void *> &getMemoryRefs() = 0;
+		virtual std::list<void *> &getMemoryLoads() = 0;
+
+		virtual std::list<void *> &getMemoryStores() = 0;
 	};
 }
