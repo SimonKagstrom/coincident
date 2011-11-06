@@ -102,10 +102,6 @@ TESTSUITE(coincident)
 {
 	TEST(basic_race)
 	{
-		// We use random scheduling here, so this actually affects
-		// the result
-		srand(time(NULL));
-
 		coincident_add_thread(test_race, NULL);
 		coincident_add_thread(test_race, NULL);
 
@@ -117,8 +113,6 @@ TESTSUITE(coincident)
 
 	TEST(basic_non_race)
 	{
-		srand(time(NULL));
-
 		coincident_add_thread(test_race, NULL);
 		coincident_add_thread(test_non_race, NULL);
 		coincident_add_thread(test_non_race, NULL);
@@ -163,6 +157,8 @@ TESTSUITE(coincident)
 
 int main(int argc, const char *argv[])
 {
+	// We use random scheduling here, so this actually affects
+	// the result
 	srand(time(NULL));
 
 	coincident_init();
