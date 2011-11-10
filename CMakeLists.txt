@@ -35,9 +35,16 @@ set (${TGT}_SRCS
 
 include_directories (src/include/)
 include_directories (${LIBUDIS86_INCLUDE_DIRS})
+include_directories (${LIBCRPCUT_INCLUDE_DIRS})
 
 
 add_library (${LIB} ${${LIB}_SRCS})
 
 add_executable (${TGT} ${${TGT}_SRCS})
-target_link_libraries(${TGT} ${LIB} elf gmock gtest ${LIBCRPCUT_LIBRARIES} ${LIBUDIS86_LIBRARIES})
+target_link_libraries(${TGT}
+	${LIB}
+	elf
+	gmock
+	gtest
+	${LIBCRPCUT_LIBRARIES}
+	${LIBUDIS86_LIBRARIES})
