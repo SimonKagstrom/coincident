@@ -26,4 +26,5 @@ To get started, look in the self-test directory for some examples on
 how the Coincident library is used.
 
 [1] http://research.microsoft.com/en-us/projects/chess/
+
 [2] http://crpcut.sourceforge.net/
