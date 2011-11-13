@@ -3,7 +3,7 @@
 #include <utils.hh>
 
 #define N_THREADS 16
-static IThread *threads[N_THREADS];
+static Thread *threads[N_THREADS];
 
 IThread &IThread::createThread(void (*exitHook)(),
 		int (*fn)(void *), void *arg)
