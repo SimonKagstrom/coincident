@@ -8,6 +8,15 @@
 
 using namespace testing;
 
+#include <sys/time.h>
+uint64_t getTimeStamp(uint64_t start)
+{
+	struct timeval tv;
+
+	gettimeofday(&tv, NULL);
+
+	return (tv.tv_usec + tv.tv_sec * 1000 * 1000) - start;
+}
 
 /*
  * The code below is not stupid, but VERY stupid.
@@ -133,9 +142,12 @@ TESTSUITE(coincident)
 		coincident_add_thread(test_pthreads_non_race, &mutex);
 		coincident_add_thread(test_pthreads_non_race, &mutex);
 
-		coincident_set_time_limit(1000);
+		coincident_set_run_limit(100);
 
+		uint64_t ts = getTimeStamp(0);
 		int result = coincident_run();
+		uint64_t nach = getTimeStamp(ts);
+		printf("%Ld us\n", nach);
 		ASSERT_TRUE(result == 0);
 	}
 
@@ -152,6 +164,30 @@ TESTSUITE(coincident)
 
 		int result = coincident_run();
 		ASSERT_TRUE(result == 0);
+	}
+
+	TEST(test_time)
+	{
+		pthread_mutex_t mutex;
+
+		pthread_mutex_init(&mutex, NULL);
+
+		uint64_t ts = getTimeStamp(0);
+		for (int i = 0; i < 100; i++)
+		{
+			int pid = fork();
+
+			if (pid == 0)
+			{
+				wait(NULL);
+				continue;
+			}
+			test_pthreads_non_race((void *)&mutex);
+			test_pthreads_non_race((void *)&mutex);
+			exit(0);
+		}
+		uint64_t nach = getTimeStamp(ts);
+		printf("%Ld us\n", nach);
 	}
 }
 
