@@ -48,3 +48,16 @@ target_link_libraries(${TGT}
 	gtest
 	${LIBCRPCUT_LIBRARIES}
 	${LIBUDIS86_LIBRARIES})
+
+
+# Installation rules
+install(FILES
+	src/include/coincident/coincident.h
+	src/include/coincident/controller.hh
+	src/include/coincident/thread.hh
+	DESTINATION include/coincident
+	)
+
+install(TARGETS ${LIB}
+	ARCHIVE DESTINATION lib
+	)
