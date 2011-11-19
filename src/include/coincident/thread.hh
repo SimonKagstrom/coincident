@@ -20,6 +20,14 @@ namespace coincident
 		 */
 		virtual unsigned long getArgument(int n) = 0;
 
+		/**
+		 * Return the return value for a function
+		 *
+		 * @return the return value. If the PC is not at the instruction after
+		 * a call, this value will be gibberish.
+		 */
+		virtual unsigned long getReturnValue() = 0;
+
 		virtual void stepOverBreakpoint() = 0;
 
 		virtual void saveRegisters() = 0;
