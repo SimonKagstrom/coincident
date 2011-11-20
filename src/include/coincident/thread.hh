@@ -10,6 +10,8 @@ namespace coincident
 		// getRegs should only be used by Session
 		friend class Session;
 
+		friend class ThreadFactory;
+
 		/**
 		 * Return function call argument number @a n
 		 *
@@ -41,13 +43,22 @@ namespace coincident
 
 		virtual bool isBlocked() = 0;
 
+	private:
+		static IThread *createThread(void (*exitHook)(),
+				int (*fn)(void *), void *arg);
 
+		static void releaseThread(IThread *thread);
+
+		virtual void *getRegs() = 0;
+	};
+
+
+	class ThreadFactory
+	{
+	public:
 		static IThread &createThread(void (*exitHook)(),
 				int (*fn)(void *), void *arg);
 
 		static void releaseThread(IThread &thread);
-
-	private:
-		virtual void *getRegs() = 0;
 	};
 }

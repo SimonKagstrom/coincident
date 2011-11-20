@@ -17,6 +17,7 @@ set (${TGT}_SRCS
     ../src/apis/semaphore.cc
     ../src/disassembly.cc
     ../src/elf.cc
+    ../src/thread.cc
     main.cc
     mock-thread.cc
     tests-controller.cc

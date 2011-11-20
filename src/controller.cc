@@ -353,7 +353,7 @@ Session::Session(Controller &owner, int nThreads, Controller::ThreadData **threa
 	for (int i = 0; i < m_nThreads; i++) {
 		Controller::ThreadData *p = threads[i];
 
-		m_threads[i] = &IThread::createThread(Session::threadExit,
+		m_threads[i] = &ThreadFactory::createThread(Session::threadExit,
 				p->m_fn, p->m_priv);
 	}
 
@@ -364,7 +364,7 @@ Session::Session(Controller &owner, int nThreads, Controller::ThreadData **threa
 Session::~Session()
 {
 	for (int i = 0; i < m_nThreads; i++)
-		IThread::releaseThread(*m_threads[i]);
+		ThreadFactory::releaseThread(*m_threads[i]);
 
 	delete[] m_threads;
 
@@ -382,7 +382,7 @@ void Session::removeThread(int pid, int which)
 	if (m_nThreads < 1)
 		return;
 
-	IThread::releaseThread(*m_threads[which]);
+	ThreadFactory::releaseThread(*m_threads[which]);
 
 	// Swap threads
 	if (which != m_nThreads)

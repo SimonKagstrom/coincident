@@ -27,6 +27,7 @@ set (${LIB}_SRCS
 	src/elf.cc
 	src/ptrace.cc
 	src/thread-ia32.cc
+	src/thread.cc
     )
     
 set (${TGT}_SRCS

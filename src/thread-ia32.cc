@@ -129,5 +129,14 @@ private:
 	bool m_blocked;
 };
 
-// Yes, this is ugly.
-#include "thread.cc"
+IThread *IThread::createThread(void (*exitHook)(),
+				int (*fn)(void *), void *arg)
+{
+	return new Thread(exitHook, fn, arg);
+}
+
+void IThread::releaseThread(IThread *thread)
+{
+	delete (Thread *)thread;
+}
+
