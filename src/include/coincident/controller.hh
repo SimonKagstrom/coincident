@@ -26,11 +26,6 @@ namespace coincident
 					const PtraceEvent *) = 0;
 		};
 
-		class ISessionListener
-		{
-		public:
-			virtual void sessionStart() = 0;
-		};
 
 		static IController &getInstance();
 
