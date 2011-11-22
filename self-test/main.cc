@@ -1,12 +1,8 @@
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
 #include <crpcut.hpp>
 #include <stdio.h>
 #include <pthread.h>
 
 #include <coincident/coincident.h>
-
-using namespace testing;
 
 #include <sys/time.h>
 uint64_t getTimeStamp(uint64_t start)

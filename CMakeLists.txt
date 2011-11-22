@@ -45,8 +45,6 @@ add_executable (${TGT} ${${TGT}_SRCS})
 target_link_libraries(${TGT}
 	${LIB}
 	elf
-	gmock
-	gtest
 	${LIBCRPCUT_LIBRARIES}
 	${LIBUDIS86_LIBRARIES})
 
