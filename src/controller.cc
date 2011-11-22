@@ -46,7 +46,6 @@ static void forceProcessToCurrentCPU()
 	cpu_set_t *set = CPU_ALLOC(1);
 	panic_if (!set,
 			"Can't allocate CPU set!\n");
-	printf("Running on %d\n", sched_getcpu());
 	CPU_SET(sched_getcpu(), set);
 	panic_if (sched_setaffinity(getpid(), CPU_ALLOC_SIZE(1), set) < 0,
 			"Can't set CPU affinity. Coincident won't work");
