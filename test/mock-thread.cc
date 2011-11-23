@@ -42,12 +42,12 @@ public:
 			.WillByDefault(Invoke(&m_fake, &FakeThread::myUnBlock));
 
 		EXPECT_CALL(*this, getRegs())
-				.Times(AtLeast(1))
+				.Times(AnyNumber())
 				.WillRepeatedly(Return((void *)m_regs))
 				;
 
 		EXPECT_CALL(*this, stepOverBreakpoint())
-				.Times(AtLeast(1));
+				.Times(AnyNumber());
 		EXPECT_CALL(*this, isBlocked())
 			.Times(AnyNumber());
 		EXPECT_CALL(*this, block())
