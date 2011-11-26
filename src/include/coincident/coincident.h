@@ -39,6 +39,19 @@ extern void coincident_set_run_limit(int n_runs);
 extern void coincident_set_time_limit(int n_ms);
 
 
+
+/**
+ * Setup a bucket thread selector
+ *
+ * Bucket thread selectors run a thread for a number of mem refs based on the
+ * current bucket. It then switches thread and continues with the next bucket.
+ *
+ * @param buckets a vector of the buckets
+ * @param n_buckets the number of buckets
+ */
+extern void coincident_set_bucket_selector(int *buckets, unsigned int n_buckets);
+
+
 /**
  * Start coincident!
  *

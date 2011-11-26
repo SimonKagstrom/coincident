@@ -33,6 +33,59 @@ public:
 	}
 };
 
+class TimeListSelector : public IController::IThreadSelector
+{
+public:
+	TimeListSelector(int *entries, int numEntries)
+	{
+		m_entries = numEntries;
+
+		m_buckets = new int[numEntries];
+		memcpy(m_buckets, entries, m_entries * sizeof(int));
+
+		m_curBucket = 0;
+		m_curTimeLeft = m_buckets[m_curBucket];
+	}
+
+	virtual ~TimeListSelector()
+	{
+		delete[] m_buckets;
+	}
+
+	int selectThread(int curThread,
+			IThread **threads,
+			int nThreads,
+			uint64_t timeUs,
+			const PtraceEvent *ev)
+	{
+		bool switchThread = false;
+
+		if (m_curTimeLeft <= 0) {
+			m_curBucket = (m_curBucket + 1) % m_entries;
+			m_curTimeLeft = m_buckets[m_curBucket];
+
+			switchThread = true;
+		}
+		if (curThread >= nThreads) {
+			curThread = 0;
+			switchThread = true;
+		}
+
+		m_curTimeLeft--;
+
+		if (switchThread)
+			curThread = (curThread + 1) % nThreads;
+
+		return curThread;
+	}
+
+private:
+	int *m_buckets;
+	int m_entries;
+	int m_curTimeLeft;
+	int m_curBucket;
+};
+
 namespace coincident
 {
 	class Session;
@@ -635,6 +688,11 @@ void coincident_set_run_limit(int n_runs)
 void coincident_set_time_limit(int n_ms)
 {
 	IController::getInstance().setTimeLimit(n_ms);
+}
+
+void coincident_set_bucket_selector(int *buckets, unsigned int n_buckets)
+{
+	IController::getInstance().setThreadSelector(new TimeListSelector(buckets, n_buckets));
 }
 
 int coincident_run(void)
