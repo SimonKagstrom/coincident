@@ -15,6 +15,7 @@ set (${TEST_ELF}_SRCS
 set (${TGT}_SRCS
     ../src/apis/pthreads/mutex.cc
     ../src/apis/semaphore.cc
+	../src/apis/semaphore-helpers.cc
     ../src/disassembly.cc
     ../src/elf.cc
     ../src/thread.cc

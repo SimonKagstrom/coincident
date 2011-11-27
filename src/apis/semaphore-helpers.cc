@@ -1,0 +1,47 @@
+#include <coincident/api-helpers/semaphore-helpers.hh>
+#include <coincident/api-helpers/semaphore.hh>
+#include <coincident/controller.hh>
+#include <coincident/thread.hh>
+
+using namespace coincident;
+
+static void function_replacement(void)
+{
+}
+
+Semaphore *PthreadManager::getSem(unsigned long addr)
+{
+	if (m_semaphores.find(addr) == m_semaphores.end()) {
+		Semaphore *p = new Semaphore(1);
+
+		m_semaphores[addr] = p;
+	}
+
+	return m_semaphores[addr];
+}
+
+PthreadManager &PthreadManager::getInstance()
+{
+	static PthreadManager *instance;
+
+	if (!instance)
+		instance = new PthreadManager();
+
+	return *instance;
+}
+
+
+
+Semaphore *PthreadMutexBase::lookupSemOnStop()
+{
+	IController &controller = IController::getInstance();
+	IThread *thread = controller.getCurrentThread();
+	unsigned long mutex = thread->getArgument(0);
+
+	Semaphore *sem = PthreadManager::getInstance().getSem(mutex);
+
+	// Don't execute the real pthread stuff, instead just return
+	thread->setPc((void *)function_replacement);
+
+	return sem;
+}

@@ -22,6 +22,7 @@ set (CMAKE_BUILD_TYPE debug)
 set (${LIB}_SRCS
 	src/apis/pthreads/mutex.cc
 	src/apis/semaphore.cc
+	src/apis/semaphore-helpers.cc
 	src/controller.cc
 	src/disassembly.cc
 	src/elf.cc
