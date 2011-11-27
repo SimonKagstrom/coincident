@@ -112,6 +112,17 @@ public:
 		return id;
 	}
 
+	void clearAllBreakpoints()
+	{
+		for (breakpointToAddrMap_t::iterator it = m_breakpointToAddrMap.begin();
+				it != m_breakpointToAddrMap.end(); it++)
+			clearBreakpoint(it->first);
+
+		m_addrToBreakpointMap.clear();
+		m_addrToBreakpointMap.clear();
+		m_instructionMap.clear();
+	}
+
 	bool clearBreakpoint(int id)
 	{
 		if (m_breakpointToAddrMap.find(id) == m_breakpointToAddrMap.end())

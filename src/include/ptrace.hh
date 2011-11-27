@@ -44,6 +44,10 @@ namespace coincident
 
 		virtual bool clearBreakpoint(int id) = 0;
 
+
+		virtual void clearAllBreakpoints() = 0;
+
+
 		/**
 		 * For a new process and attach to it with ptrace
 		 *

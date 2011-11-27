@@ -15,6 +15,7 @@ public:
 
 	MOCK_METHOD1(setBreakpoint, int(void *addr));
 	MOCK_METHOD1(clearBreakpoint, bool(int id));
+	MOCK_METHOD0(clearAllBreakpoints, void());
 	MOCK_METHOD0(forkAndAttach, int());
 	MOCK_METHOD1(loadRegisters, void(void *regs));
 	MOCK_METHOD1(saveRegisters, void(void *regs));
