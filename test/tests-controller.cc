@@ -1,7 +1,7 @@
 #include "test.hh"
 
 #include "../src/controller.cc"
-#include "../src/apis/semaphore.hh"
+#include <coincident/api-helpers/semaphore.hh>
 #include "mock-ptrace.hh"
 
 using namespace coincident;

@@ -2,7 +2,7 @@
 #include <coincident/controller.hh>
 #include <coincident/thread.hh>
 #include <apis.hh>
-#include "../semaphore.hh"
+#include <coincident/api-helpers/semaphore.hh>
 
 #include <map>
 #include <pthread.h>

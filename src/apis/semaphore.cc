@@ -1,7 +1,7 @@
-#include "semaphore.hh"
 #include <utils.hh>
 #include <coincident/controller.hh>
 #include <coincident/thread.hh>
+#include <coincident/api-helpers/semaphore.hh>
 
 using namespace coincident;
 
