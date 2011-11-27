@@ -20,6 +20,15 @@ Semaphore *SemaphoreManager::getSem(unsigned long addr)
 	return m_semaphores[addr];
 }
 
+void SemaphoreManager::clearSemaphores()
+{
+	for (SemaphoreManager::SemaphoreMap_t::iterator it = m_semaphores.begin();
+			it != m_semaphores.end(); it++)
+		delete it->second;
+
+	m_semaphores.clear();
+}
+
 SemaphoreManager &SemaphoreManager::getInstance()
 {
 	static SemaphoreManager *instance;

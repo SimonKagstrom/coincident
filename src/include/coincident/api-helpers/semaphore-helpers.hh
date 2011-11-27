@@ -13,6 +13,8 @@ namespace coincident
 
 		Semaphore *getSem(unsigned long addr);
 
+		void clearSemaphores();
+
 	private:
 		typedef std::map<unsigned long, Semaphore *> SemaphoreMap_t;
 
