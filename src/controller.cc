@@ -195,8 +195,9 @@ public:
 
 	void switchThread(const PtraceEvent &ev);
 
-	bool run();
+	void releaseLastThread();
 
+	bool run();
 
 	class ExitHandler : public Controller::IFunctionHandler
 	{
@@ -220,6 +221,7 @@ public:
 	int m_nThreads;
 	int m_curPid;
 	int m_curThread;
+	bool m_lastThreadLoose;
 
 	IThread **m_threads;
 };
@@ -421,6 +423,7 @@ Session::Session(Controller &owner, int nThreads, Controller::ThreadData **threa
 	m_threads = new IThread*[m_nThreads];
 	m_curThread = 0;
 	m_curPid = 0;
+	m_lastThreadLoose = false;
 
 	for (int i = 0; i < m_nThreads; i++) {
 		Controller::ThreadData *p = threads[i];
@@ -584,6 +587,19 @@ void Session::switchThread(const PtraceEvent &ev)
 	}
 }
 
+void Session::releaseLastThread()
+{
+	if (m_lastThreadLoose)
+		return;
+
+	IPtrace &ptrace = IPtrace::getInstance();
+
+	ptrace.clearAllBreakpoints();
+	ptrace.setBreakpoint((void *)Session::threadExit);
+
+	m_lastThreadLoose = true;
+}
+
 bool Session::continueExecution()
 {
 	IPtrace::getInstance().loadRegisters(m_threads[m_curThread]->getRegs());
@@ -649,6 +665,11 @@ bool Session::run()
 			// Quit if all threads have exited cleanly
 			if (m_nThreads == 0)
 				break;
+
+			// If there is only one thread left, let it loose to
+			// improve performance
+			if (m_owner.m_nThreads - m_nThreads == 1)
+				releaseLastThread();
 		} while (!should_quit);
 
 		ptrace.kill();
