@@ -9,7 +9,7 @@ static void function_replacement(void)
 {
 }
 
-Semaphore *PthreadManager::getSem(unsigned long addr)
+Semaphore *SemaphoreManager::getSem(unsigned long addr)
 {
 	if (m_semaphores.find(addr) == m_semaphores.end()) {
 		Semaphore *p = new Semaphore(1);
@@ -20,25 +20,25 @@ Semaphore *PthreadManager::getSem(unsigned long addr)
 	return m_semaphores[addr];
 }
 
-PthreadManager &PthreadManager::getInstance()
+SemaphoreManager &SemaphoreManager::getInstance()
 {
-	static PthreadManager *instance;
+	static SemaphoreManager *instance;
 
 	if (!instance)
-		instance = new PthreadManager();
+		instance = new SemaphoreManager();
 
 	return *instance;
 }
 
 
 
-Semaphore *PthreadMutexBase::lookupSemOnStop()
+Semaphore *SemaphoreBase::lookupSemOnStop()
 {
 	IController &controller = IController::getInstance();
 	IThread *thread = controller.getCurrentThread();
 	unsigned long mutex = thread->getArgument(0);
 
-	Semaphore *sem = PthreadManager::getInstance().getSem(mutex);
+	Semaphore *sem = SemaphoreManager::getInstance().getSem(mutex);
 
 	// Don't execute the real pthread stuff, instead just return
 	thread->setPc((void *)function_replacement);

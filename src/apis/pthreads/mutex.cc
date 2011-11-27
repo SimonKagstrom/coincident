@@ -11,7 +11,7 @@
 using namespace coincident;
 
 
-class PthreadMutexLock : public IController::IFunctionHandler, public PthreadMutexBase
+class PthreadMutexLock : public IController::IFunctionHandler, public SemaphoreBase
 {
 public:
 	bool handle(IThread *curThread, void *addr, const PtraceEvent &ev)
@@ -24,7 +24,7 @@ public:
 	}
 };
 
-class PthreadMutexUnlock : public IController::IFunctionHandler, public PthreadMutexBase
+class PthreadMutexUnlock : public IController::IFunctionHandler, public SemaphoreBase
 {
 public:
 	bool handle(IThread *curThread, void *addr, const PtraceEvent &ev)

@@ -6,10 +6,10 @@ namespace coincident
 {
 	class Semaphore;
 
-	class PthreadManager
+	class SemaphoreManager
 	{
 	public:
-		static PthreadManager &getInstance();
+		static SemaphoreManager &getInstance();
 
 		Semaphore *getSem(unsigned long addr);
 
@@ -19,7 +19,7 @@ namespace coincident
 		SemaphoreMap_t m_semaphores;
 	};
 
-	class PthreadMutexBase
+	class SemaphoreBase
 	{
 	protected:
 		Semaphore *lookupSemOnStop();
