@@ -15,6 +15,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <map>
+#include <string>
 
 using namespace coincident;
 
@@ -156,6 +157,10 @@ public:
 
 	uint64_t getTimeStamp(uint64_t start);
 
+	void reportError(const char *description);
+
+	const char *getError();
+
 	typedef std::map<void *, IFunction *> FunctionMap_t;
 	typedef std::map<void *, IFunctionHandler *> FunctionHandlerMap_t;
 	typedef std::map<int, IFunction *> FunctionBreakpointMap_t;
@@ -175,6 +180,8 @@ public:
 	int m_schedulerLock;
 	int m_runLimit;
 	uint64_t m_timeLimit;
+
+	std::string m_error;
 
 	// Valid while non-NULL
 	Session *m_curSession;
@@ -415,6 +422,23 @@ void Controller::forceReschedule()
 
 	m_curSession->switchThread(ev);
 }
+
+void Controller::reportError(const char *description)
+{
+	panic_if (!m_curSession,
+			"Error reported but coincident not running");
+
+	m_error = description;
+}
+
+const char *Controller::getError()
+{
+	if (m_error.empty())
+		return NULL;
+
+	return m_error.c_str();
+}
+
 
 
 Session::Session(Controller &owner, int nThreads, Controller::ThreadData **threads) :
@@ -661,6 +685,9 @@ bool Session::run()
 
 		do {
 			should_quit = !continueExecution();
+
+			if (!m_owner.m_error.empty())
+				break;
 
 			// Quit if all threads have exited cleanly
 			if (m_nThreads == 0)

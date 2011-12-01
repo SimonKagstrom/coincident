@@ -51,6 +51,22 @@ namespace coincident
 		virtual void forceReschedule() = 0;
 
 
+		/**
+		 * Report an error
+		 *
+		 * @param description a description of the error
+		 */
+		virtual void reportError(const char *description) = 0;
+
+		/**
+		 * Read out the error
+		 *
+		 * @return a description of the error coincident found, or NULL
+		 * if there is no error
+		 */
+		virtual const char *getError() = 0;
+
+
 		virtual bool run() = 0;
 
 		virtual void setRuns(int nRuns) = 0;
