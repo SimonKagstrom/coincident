@@ -632,6 +632,9 @@ bool Session::continueExecution()
 	switch (ev.type) {
 	case ptrace_error:
 	case ptrace_crash:
+		m_owner.reportError("ptrace error");
+		return false;
+
 	case ptrace_exit:
 		return false;
 
