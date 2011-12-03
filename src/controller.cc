@@ -5,6 +5,7 @@
 #include <apis.hh>
 #include <utils.hh>
 #include <elf.hh>
+#include <stdarg.h>
 #include <function.hh>
 
 #include <stdlib.h>
@@ -157,7 +158,7 @@ public:
 
 	uint64_t getTimeStamp(uint64_t start);
 
-	void reportError(const char *description);
+	void reportError(const char *fmt, ...);
 
 	const char *getError();
 
@@ -423,12 +424,23 @@ void Controller::forceReschedule()
 	m_curSession->switchThread(ev);
 }
 
-void Controller::reportError(const char *description)
+void Controller::reportError(const char *fmt, ...)
 {
+	int n, size = 1024;
+	std::string str;
+	va_list ap;
+
 	panic_if (!m_curSession,
 			"Error reported but coincident not running");
 
-	m_error = description;
+	str.resize(size);
+	va_start(ap, fmt);
+	n = vsnprintf((char *)str.c_str(), size, fmt, ap);
+	va_end(ap);
+
+	panic_if (n < 0, "Too long error description");
+
+	m_error = str;
 }
 
 const char *Controller::getError()
@@ -632,8 +644,12 @@ bool Session::continueExecution()
 	switch (ev.type) {
 	case ptrace_error:
 	case ptrace_crash:
-		m_owner.reportError("ptrace error");
+	{
+		m_owner.reportError("ptrace %s at %p",
+				ev.type == ptrace_error ? "error" : "crash",
+				ev.addr);
 		return false;
+	}
 
 	case ptrace_exit:
 		return false;

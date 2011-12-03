@@ -56,7 +56,7 @@ namespace coincident
 		 *
 		 * @param description a description of the error
 		 */
-		virtual void reportError(const char *description) = 0;
+		virtual void reportError(const char *fmt, ...) = 0;
 
 		/**
 		 * Read out the error
