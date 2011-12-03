@@ -51,6 +51,7 @@ Semaphore *SemaphoreBase::lookupSemOnStop()
 
 	// Don't execute the real pthread stuff, instead just return
 	thread->setPc((void *)function_replacement);
+	thread->setReturnValue(0);
 
 	return sem;
 }
