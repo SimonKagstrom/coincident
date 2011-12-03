@@ -30,6 +30,8 @@ namespace coincident
 		 */
 		virtual unsigned long getReturnValue() = 0;
 
+		virtual void setReturnValue(unsigned long what) = 0;
+
 		virtual void stepOverBreakpoint() = 0;
 
 		virtual void saveRegisters() = 0;

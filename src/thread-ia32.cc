@@ -62,6 +62,11 @@ public:
 		return m_regs.eax;
 	}
 
+	void setReturnValue(unsigned long value)
+	{
+		m_regs.eax = value;
+	}
+
 	void saveRegisters()
 	{
 		IPtrace &ptrace = IPtrace::getInstance();
