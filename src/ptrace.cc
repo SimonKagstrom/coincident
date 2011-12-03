@@ -188,7 +188,6 @@ public:
 		// Assume error
 		out.type = ptrace_error;
 		out.eventId = -1;
-		out.addr = NULL;
 
 		res = ptrace(PTRACE_CONT, m_child, 0, 0);
 		if (res < 0)
@@ -198,13 +197,14 @@ public:
 		if (who == -1)
 			return out;
 
+		out.addr = getPc(m_child);
+
 		// A signal?
 		if (WIFSTOPPED(status)) {
 			// A trap?
 			if (WSTOPSIG(status) == SIGTRAP) {
 				out.type = ptrace_breakpoint;
 				out.eventId = -1;
-				out.addr = getPc(m_child);
 
 				// Breakpoint id
 				addrToBreakpointMap_t::iterator it = m_addrToBreakpointMap.find(out.addr);
@@ -221,7 +221,6 @@ public:
 			if (who == m_child) {
 				out.type = ptrace_exit;
 				out.eventId = -1;
-				out.addr = NULL;
 				return out;
 			}
 		}
