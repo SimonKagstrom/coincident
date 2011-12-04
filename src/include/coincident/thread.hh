@@ -38,6 +38,8 @@ namespace coincident
 
 		virtual void setPc(void *addr) = 0;
 
+		virtual void *getPc() = 0;
+
 
 		virtual void block() = 0;
 

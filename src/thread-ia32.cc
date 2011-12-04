@@ -89,6 +89,11 @@ public:
 		m_regs.eip = (unsigned long)addr;
 	}
 
+	void *getPc()
+	{
+		return (void *)m_regs.eip;
+	}
+
 	void block()
 	{
 		m_blocked = true;
