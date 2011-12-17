@@ -16,19 +16,26 @@ using namespace coincident;
 class Function : public IFunction, IDisassembly::IInstructionListener
 {
 public:
-	Function(const char *name, void *addr, size_t size)
+	Function(const char *name, void *addr, size_t size,
+			IFunction::FunctionType type)
 	{
 		m_refsValid = false;
 		m_name = xstrdup(name);
 		m_size = size;
 		m_entry = addr;
 		m_data = new uint8_t[m_size];
+		m_type = type;
 	}
 
 	virtual ~Function()
 	{
 		delete m_name;
 		delete m_data;
+	}
+
+	enum IFunction::FunctionType getType()
+	{
+		return m_type;
 	}
 
 	const char *getName()
@@ -114,6 +121,7 @@ private:
 	size_t m_size;
 	void *m_entry;
 	uint8_t *m_data;
+	enum IFunction::FunctionType m_type;
 
 	ReferenceList_t m_loadList;
 	ReferenceList_t m_storeList;
@@ -309,10 +317,15 @@ private:
 
 	void handleDynsym(Elf_Scn *scn)
 	{
-		handleSymtab(scn);
+		handleSymtabGeneric(scn, IFunction::SYM_DYNAMIC);
 	}
 
 	void handleSymtab(Elf_Scn *scn)
+	{
+		handleSymtabGeneric(scn, IFunction::SYM_NORMAL);
+	}
+
+	void handleSymtabGeneric(Elf_Scn *scn, enum IFunction::FunctionType symType)
 	{
 		Elf32_Shdr *shdr = elf32_getshdr(scn);
 		Elf_Data *data = elf_getdata(scn, NULL);
@@ -336,7 +349,7 @@ private:
 			if ( type == STT_FUNC) {
 				Elf32_Addr addr = s->st_value;
 				Elf32_Word size = s->st_size;
-				Function *fn = new Function(sym_name, (void *)addr, size);
+				Function *fn = new Function(sym_name, (void *)addr, size, symType);
 
 				m_functionsByName[std::string(sym_name)] = fn;
 				// Needs fixup?

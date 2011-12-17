@@ -8,7 +8,15 @@ namespace coincident
 	class IFunction
 	{
 	public:
+		enum FunctionType
+		{
+			SYM_NORMAL,
+			SYM_DYNAMIC,
+		};
+
 		typedef std::list<void *> ReferenceList_t;
+
+		virtual enum FunctionType getType() = 0;
 
 		virtual const char *getName() = 0;
 
