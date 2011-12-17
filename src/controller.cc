@@ -252,9 +252,11 @@ Controller::Controller()
 
 	m_curSession = NULL;
 
-	IElf &elf = IElf::getInstance();
+	IElf *elf = IElf::open("/proc/self/exe");
+	panic_if (!elf,
+			"Can't open executable");
 
-	elf.setFile(this, "/proc/self/exe");
+	elf->setFile(this);
 
 
 	// Setup function breakpoints

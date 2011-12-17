@@ -64,17 +64,16 @@ int mockSetBreakpoint(void *addr)
 
 TEST(elffile)
 {
-	IElf &elf = IElf::getInstance();
 	FunctionListener listener;
 	char filename[1024];
 	bool res;
 
-	res = elf.setFile(&listener, "vobb-mibb");
-	ASSERT_TRUE(res == false);
+	IElf *elf = IElf::open("not-found");
+	ASSERT_TRUE(!elf);
 
 	sprintf(filename, "%s/Makefile", crpcut::get_start_dir());
-	res = elf.setFile(&listener, filename);
-	ASSERT_TRUE(res == false);
+	elf = IElf::open(filename);
+	ASSERT_TRUE(!elf);
 
 	EXPECT_CALL(ptraceInstance, setBreakpoint(_))
 		.Times(AtLeast(1))
@@ -84,12 +83,15 @@ TEST(elffile)
 
 	// Don't run the unit test as root!
 	sprintf(filename, "%s/test-elf", crpcut::get_start_dir());
-	res = elf.setFile(&listener, filename);
+	elf = IElf::open(filename);
+	ASSERT_TRUE(elf);
+
+	res = elf->setFile(&listener);
 	ASSERT_TRUE(res == true);
 
 	ASSERT_TRUE(listener.m_map[std::string("vobb")] > 0);
 	ASSERT_TRUE(listener.m_map[std::string("mibb")] > 0);
 
-	ASSERT_NE(elf.functionByName("vobb"), 0);
-	ASSERT_EQ(elf.functionByName("vobb2"), 0);
+	ASSERT_NE(elf->functionByName("vobb"), 0);
+	ASSERT_EQ(elf->functionByName("vobb2"), 0);
 }

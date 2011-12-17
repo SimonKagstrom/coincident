@@ -15,11 +15,10 @@ namespace coincident
 			virtual void onFunction(IFunction &fn) = 0;
 		};
 
-		static IElf &getInstance();
+		static IElf *open(const char *filename);
 
 
-		virtual bool setFile(IFunctionListener *listener,
-				const char *filename) = 0;
+		virtual bool setFile(IFunctionListener *listener) = 0;
 
 		virtual IFunction *functionByName(const char *name) = 0;
 

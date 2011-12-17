@@ -122,14 +122,48 @@ private:
 class Elf : public IElf
 {
 public:
-	Elf()
+	Elf(const char *filename)
 	{
 		m_elf = NULL;
 		m_listener = NULL;
+		m_filename = strdup(filename);
 	}
 
-	bool setFile(IFunctionListener *listener,
-			const char *filename)
+	~Elf()
+	{
+		free((void *)m_filename);
+	}
+
+	bool checkFile()
+	{
+		Elf *elf;
+		bool out = true;
+		int fd;
+
+		fd = ::open(m_filename, O_RDONLY, 0);
+		if (fd < 0) {
+				error("Cannot open %s\n", m_filename);
+				return false;
+		}
+
+		if (!(elf = elf_begin(fd, ELF_C_READ, NULL)) ) {
+				error("elf_begin failed on %s\n", m_filename);
+				out = false;
+				goto out_open;
+		}
+		if (!elf32_getehdr(elf)) {
+				error("elf32_getehdr failed on %s\n", m_filename);
+				out = false;
+		}
+		elf_end(elf);
+
+out_open:
+		close(fd);
+
+		return out;
+	}
+
+	bool setFile(IFunctionListener *listener)
 	{
 		Elf_Scn *scn = NULL;
 		Elf32_Ehdr *ehdr;
@@ -142,28 +176,25 @@ public:
 		m_functionsByAddress.clear();
 		m_functionsByName.clear();
 
-		panic_if(elf_version(EV_CURRENT) == EV_NONE,
-				"ELF version failed on %s\n", filename);
-
-		fd = open(filename, O_RDONLY, 0);
+		fd = ::open(m_filename, O_RDONLY, 0);
 		if (fd < 0) {
-				error("Cannot open %s\n", filename);
+				error("Cannot open %s\n", m_filename);
 				return false;
 		}
 
 		if (!(m_elf = elf_begin(fd, ELF_C_READ, NULL)) ) {
-				error("elf_begin failed on %s\n", filename);
+				error("elf_begin failed on %s\n", m_filename);
 				goto out_open;
 		}
 
 
 		if (!(ehdr = elf32_getehdr(m_elf))) {
-				error("elf32_getehdr failed on %s\n", filename);
+				error("elf32_getehdr failed on %s\n", m_filename);
 				goto out_elf_begin;
 		}
 
 		if (elf_getshdrstrndx(m_elf, &shstrndx) < 0) {
-				error("elf_getshstrndx failed on %s\n", filename);
+				error("elf_getshstrndx failed on %s\n", m_filename);
 				goto out_elf_begin;
 		}
 
@@ -176,7 +207,7 @@ public:
 			name = elf_strptr(m_elf, shstrndx, shdr->sh_name);
 			if(!data) {
 					error("elf_getdata failed on section %s in %s\n",
-					name, filename);
+							name, m_filename);
 					goto out_elf_begin;
 			}
 
@@ -188,8 +219,8 @@ public:
 		}
 		elf_end(m_elf);
 		if (!(m_elf = elf_begin(fd, ELF_C_READ, NULL)) ) {
-				error("elf_begin failed on %s\n", filename);
-				goto out_open;
+			error("elf_begin failed on %s\n", m_filename);
+			goto out_open;
 		}
 		while ( (scn = elf_nextscn(m_elf, scn)) != NULL )
 		{
@@ -325,14 +356,27 @@ private:
 
 	Elf *m_elf;
 	IFunctionListener *m_listener;
+	const char *m_filename;
 };
 
-IElf &IElf::getInstance()
+IElf *IElf::open(const char *filename)
 {
-	static Elf *instance;
+	static bool initialized = false;
+	Elf *p;
 
-	if (!instance)
-		instance = new Elf();
+	if (!initialized) {
+		panic_if(elf_version(EV_CURRENT) == EV_NONE,
+				"ELF version failed\n");
+		initialized = true;
+	}
 
-	return *instance;
+	p = new Elf(filename);
+
+	if (p->checkFile() == false) {
+		delete p;
+
+		return NULL;
+	}
+
+	return p;
 }
