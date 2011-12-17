@@ -41,6 +41,13 @@ namespace coincident
 		virtual void *getPc() = 0;
 
 
+		/**
+		 * Do a backtrace for this thread. Simply because the libc backtrace()
+		 * function has a very faktab interface.
+		 */
+		virtual int backtrace(unsigned long *buf, int maxValues) = 0;
+
+
 		virtual void block() = 0;
 
 		virtual void unBlock() = 0;

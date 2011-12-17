@@ -94,6 +94,27 @@ public:
 		return (void *)m_regs.eip;
 	}
 
+	int backtrace(unsigned long *buf, int maxValues)
+	{
+		unsigned long fp = m_regs.ebp;
+		int n = 0;
+
+		do {
+			if (n >= maxValues)
+				break;
+
+			if (fp < (unsigned long)m_stackStart || fp > (unsigned long)m_stack)
+				break;
+
+			buf[n] = readProcessLong(fp + 4);
+
+			fp = readProcessLong(fp);
+			n++;
+		} while (fp != 0);
+
+		return n;
+	}
+
 	void block()
 	{
 		m_blocked = true;
@@ -110,6 +131,20 @@ public:
 	}
 
 private:
+	unsigned long readProcessLong(unsigned long addr)
+	{
+		IPtrace &ptrace = IPtrace::getInstance();
+		union
+		{
+			uint8_t c[sizeof(unsigned long)];
+			unsigned long v;
+		} buf;
+
+		ptrace.readProcessMemory(buf.c, (void *)addr, sizeof(unsigned long));
+
+		return buf.v;
+	}
+
 	void setupRegs()
 	{
 		memset(&m_regs, 0, sizeof(m_regs));

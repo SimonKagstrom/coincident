@@ -64,6 +64,7 @@ public:
 	MOCK_METHOD1(getArgument,unsigned long(int n));
 	MOCK_METHOD0(getReturnValue, unsigned long());
 	MOCK_METHOD1(setReturnValue, void(unsigned long value));
+	MOCK_METHOD2(backtrace, int(unsigned long *buf, int maxValues));
 
 	MOCK_METHOD0(block, void());
 	MOCK_METHOD0(unBlock, void());
