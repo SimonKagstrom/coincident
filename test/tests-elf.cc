@@ -86,7 +86,7 @@ TEST(elffile)
 	elf = IElf::open(filename);
 	ASSERT_TRUE(elf);
 
-	res = elf->setFile(&listener);
+	res = elf->parse(&listener);
 	ASSERT_TRUE(res == true);
 
 	ASSERT_TRUE(listener.m_map[std::string("vobb")] > 0);

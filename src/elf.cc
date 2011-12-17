@@ -163,7 +163,7 @@ out_open:
 		return out;
 	}
 
-	bool setFile(IFunctionListener *listener)
+	bool parse(IFunctionListener *listener)
 	{
 		Elf_Scn *scn = NULL;
 		Elf32_Ehdr *ehdr;

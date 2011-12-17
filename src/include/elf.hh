@@ -18,7 +18,7 @@ namespace coincident
 		static IElf *open(const char *filename);
 
 
-		virtual bool setFile(IFunctionListener *listener) = 0;
+		virtual bool parse(IFunctionListener *listener) = 0;
 
 		virtual IFunction *functionByName(const char *name) = 0;
 
