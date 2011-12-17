@@ -21,6 +21,7 @@ set (CMAKE_BUILD_TYPE debug)
 
 set (${LIB}_SRCS
 	src/apis/pthreads/mutex.cc
+	src/apis/pthreads/pthreads.cc
 	src/apis/semaphore.cc
 	src/apis/semaphore-helpers.cc
 	src/controller.cc
@@ -46,6 +47,8 @@ add_executable (${TGT} ${${TGT}_SRCS})
 target_link_libraries(${TGT}
 	${LIB}
 	elf
+	gmock
+	gtest
 	${LIBCRPCUT_LIBRARIES}
 	${LIBUDIS86_LIBRARIES})
 

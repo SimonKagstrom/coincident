@@ -8,6 +8,8 @@
 #include <map>
 #include <pthread.h>
 
+#include "common.h"
+
 using namespace coincident;
 
 
@@ -37,8 +39,7 @@ public:
 	}
 };
 
-
-void coincident_api_init_pthreads(void)
+void local_coincident_api_init_pthreads_mutex(void)
 {
 	IController &controller = IController::getInstance();
 	bool res;
