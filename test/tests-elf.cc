@@ -62,7 +62,7 @@ extern "C" int mockSetBreakpoint(void *addr)
 	return id;
 }
 
-TEST(elffile)
+TEST(elffile, DEADLINE_REALTIME_MS(30000))
 {
 	FunctionListener listener;
 	char filename[1024];
