@@ -21,7 +21,7 @@ public:
 			m_map[std::string(fn.getName())]++;
 
 			IFunction::ReferenceList_t list = fn.getMemoryStores();
-			if (strcmp(fn.getName(), "vobb") == 0)
+			if (strcmp(fn.getName(), "mockReadMemory") == 0)
 				ASSERT_TRUE(list.size() > 0);
 		}
 
@@ -41,7 +41,7 @@ static uint8_t asm_dump[] =
 };
 
 
-bool mockReadMemory(uint8_t *dst, void *start, size_t bytes)
+extern "C" bool mockReadMemory(uint8_t *dst, void *start, size_t bytes)
 {
 	size_t to_cpy = bytes;
 
@@ -53,7 +53,7 @@ bool mockReadMemory(uint8_t *dst, void *start, size_t bytes)
 	return true;
 }
 
-int mockSetBreakpoint(void *addr)
+extern "C" int mockSetBreakpoint(void *addr)
 {
 	static int id = 0;
 
@@ -82,16 +82,16 @@ TEST(elffile)
 		.WillRepeatedly(Invoke(mockReadMemory));
 
 	// Don't run the unit test as root!
-	sprintf(filename, "%s/test-elf", crpcut::get_start_dir());
+	sprintf(filename, "/proc/self/exe", crpcut::get_start_dir());
 	elf = IElf::open(filename);
 	ASSERT_TRUE(elf);
 
 	res = elf->parse(&listener);
 	ASSERT_TRUE(res == true);
 
-	ASSERT_TRUE(listener.m_map[std::string("vobb")] > 0);
-	ASSERT_TRUE(listener.m_map[std::string("mibb")] > 0);
+	ASSERT_TRUE(listener.m_map[std::string("mockReadMemory")] > 0);
+	ASSERT_TRUE(listener.m_map[std::string("mockSetBreakpoint")] > 0);
 
-	ASSERT_NE(elf->functionByName("vobb"), 0);
-	ASSERT_EQ(elf->functionByName("vobb2"), 0);
+	ASSERT_NE(elf->functionByName("mockReadMemory"), 0);
+	ASSERT_EQ(elf->functionByName("mockReadMemoryNotFound"), 0);
 }

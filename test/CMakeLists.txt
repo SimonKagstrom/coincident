@@ -7,11 +7,6 @@ cmake_minimum_required (VERSION 2.6)
 project (ut)
 set (TGT ut)
 
-set (TEST_ELF test-elf)
-set (${TEST_ELF}_SRCS
-	binary-build.c
-)
-
 set (${TGT}_SRCS
     ../src/apis/pthreads/mutex.cc
 	../src/apis/pthreads/pthreads.cc
@@ -32,8 +27,6 @@ set (CMAKE_BUILD_TYPE debug)
 include_directories (../src/include/)
 include_directories (/home/ska/local/include)
 link_directories (/home/ska/local/lib)
-
-add_executable (${TEST_ELF} ${${TEST_ELF}_SRCS})
 
 add_executable (${TGT} ${${TGT}_SRCS})
 
