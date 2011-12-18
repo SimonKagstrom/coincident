@@ -11,6 +11,11 @@
 #include <map>
 #include <string>
 
+#ifndef _GNU_SOURCE
+# define _GNU_SOURCE
+#endif
+#include <link.h>
+
 using namespace coincident;
 
 class Function : public IFunction, IDisassembly::IInstructionListener
@@ -171,7 +176,63 @@ out_open:
 		return out;
 	}
 
+	static int phdrCallback(struct dl_phdr_info *info, size_t size,
+			void *data)
+	{
+		struct args
+		{
+			Elf *p;
+			IFunctionListener *listener;
+		};
+		struct args *a = (struct args *)data;
+
+		a->p->handlePhdr(a->listener, info, size);
+
+		return 0;
+	}
+
+	void handlePhdr(IFunctionListener *listener,
+			struct dl_phdr_info *info, size_t size)
+	{
+		int phdr;
+
+		if (strlen(info->dlpi_name) != 0) {
+			free( (void *)m_filename );
+			m_filename = strdup(info->dlpi_name);
+		}
+
+		m_curSegments.clear();
+		for (phdr = 0; phdr < info->dlpi_phnum; phdr++) {
+			const ElfW(Phdr) *cur = &info->dlpi_phdr[phdr];
+
+			if (cur->p_type != PT_LOAD)
+				continue;
+
+			m_curSegments.push_back(Segment(cur->p_paddr, info->dlpi_addr + cur->p_vaddr,
+					cur->p_memsz, cur->p_align));
+		}
+		parseOne(listener);
+	}
+
 	bool parse(IFunctionListener *listener)
+	{
+		struct
+		{
+			Elf *p;
+			IFunctionListener *listener;
+		} cbArgs;
+
+		m_functionsByAddress.clear();
+		m_functionsByName.clear();
+
+		cbArgs.p = this;
+		cbArgs.listener = listener;
+		dl_iterate_phdr(phdrCallback, (void *)&cbArgs);
+
+		return true;
+	}
+
+	bool parseOne(IFunctionListener *listener)
 	{
 		Elf_Scn *scn = NULL;
 		Elf32_Ehdr *ehdr;
@@ -180,9 +241,6 @@ out_open:
 		int fd;
 
 		m_listener = listener;
-
-		m_functionsByAddress.clear();
-		m_functionsByName.clear();
 
 		fd = ::open(m_filename, O_RDONLY, 0);
 		if (fd < 0) {
@@ -269,9 +327,24 @@ out_open:
 	}
 
 private:
+	class Segment
+	{
+	public:
+		Segment(ElfW(Addr) paddr, ElfW(Addr) vaddr, size_t size, ElfW(Word) align) :
+			m_paddr(paddr), m_vaddr(vaddr), m_size(size), m_align(align)
+		{
+		}
+
+		ElfW(Addr) m_paddr;
+		ElfW(Addr) m_vaddr;
+		ElfW(Word) m_align;
+		size_t m_size;
+	};
+
 	typedef std::map<std::string, Function *> FunctionsByName_t;
 	typedef std::map<void *, Function *> FunctionsByAddress_t;
 	typedef std::map<int, Function *> FixupMap_t;
+	typedef std::list<Segment> SegmentList_t;
 
 	void *offsetTableToAddress(Elf32_Addr addr)
 	{
@@ -289,6 +362,21 @@ private:
 		return (void *)(addr - 6);
 	}
 
+	ElfW(Addr) adjustAddressBySegment(ElfW(Addr) addr)
+	{
+		for (SegmentList_t::iterator it = m_curSegments.begin();
+				it != m_curSegments.end(); it++) {
+			Segment cur = *it;
+
+			if (addr >= cur.m_paddr && addr < cur.m_paddr + cur.m_size) {
+				addr = (addr - cur.m_paddr + cur.m_vaddr);
+				break;
+			}
+		}
+
+		return addr;
+	}
+
 	void handleRelPlt(Elf_Scn *scn)
 	{
 		Elf32_Shdr *shdr = elf32_getshdr(scn);
@@ -301,7 +389,7 @@ private:
 				data->d_size);
 
 		for (int i = 0; i < n; i++, r++) {
-			Elf32_Addr *got_plt = (Elf32_Addr *)r->r_offset;
+			Elf32_Addr *got_plt = (Elf32_Addr *)adjustAddressBySegment(r->r_offset);
 
 			FixupMap_t::iterator it = m_fixupFunctions.find(ELF32_R_SYM(r->r_info));
 
@@ -347,7 +435,7 @@ private:
 
 			/* Ohh... This is an interesting symbol, add it! */
 			if ( type == STT_FUNC) {
-				Elf32_Addr addr = s->st_value;
+				Elf32_Addr addr = adjustAddressBySegment(s->st_value);
 				Elf32_Word size = s->st_size;
 				Function *fn = new Function(sym_name, (void *)addr, size, symType);
 
@@ -366,6 +454,7 @@ private:
 	FunctionsByName_t m_functionsByName;
 	FunctionsByAddress_t m_functionsByAddress;
 	FixupMap_t m_fixupFunctions;
+	SegmentList_t m_curSegments;
 
 	Elf *m_elf;
 	IFunctionListener *m_listener;

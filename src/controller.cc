@@ -256,7 +256,7 @@ Controller::Controller()
 	panic_if (!elf,
 			"Can't open executable");
 
-	elf->setFile(this);
+	elf->parse(this);
 
 
 	// Setup function breakpoints
