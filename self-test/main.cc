@@ -1,8 +1,13 @@
-#include <crpcut.hpp>
 #include <stdio.h>
 #include <pthread.h>
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+#include <crpcut.hpp>
 
 #include <coincident/coincident.h>
+#include <coincident/controller.hh>
+
+using namespace testing;
 
 /*
  * The code below is not stupid, but VERY stupid.
@@ -92,6 +97,50 @@ static int test_non_race(void *params)
 	return 0;
 }
 
+class GMockTest
+{
+public:
+	MOCK_METHOD1(test1, void(int a));
+	MOCK_METHOD0(test2, int());
+};
+
+static int test_gmock_mock_in_function(void *p)
+{
+	GMockTest mock;
+
+	EXPECT_CALL(mock, test1(_))
+	.Times(AtLeast(1));
+	EXPECT_CALL(mock, test2())
+	.Times(AtLeast(1));
+
+	mock.test1(5);
+	mock.test2();
+
+	return 0;
+}
+
+static int test_gmock(void *p)
+{
+	GMockTest *mock = (GMockTest *)p;
+
+	mock->test1(5);
+	mock->test2();
+
+	return 0;
+}
+
+static int test_gmock_expect_in_function(void *p)
+{
+	GMockTest *mock = (GMockTest *)p;
+
+	EXPECT_CALL(*mock, test1(_))
+	.Times(AtLeast(1));
+
+	mock->test1(5);
+
+	return 0;
+}
+
 
 TESTSUITE(coincident)
 {
@@ -146,6 +195,48 @@ TESTSUITE(coincident)
 		coincident_set_time_limit(1000);
 
 		int result = coincident_run();
+		ASSERT_TRUE(result == 0);
+	}
+
+	TEST(gmock_expectations_in_test_function)
+	{
+		GMockTest mock;
+
+		test_gmock_expect_in_function((void *)&mock);
+
+		coincident_add_thread(test_gmock_expect_in_function, (void *)&mock);
+		coincident_set_time_limit(1000);
+
+		int result = coincident_run();
+		if (result != 0)
+			printf("ERROR: %s\n", coincident::IController::getInstance().getError());
+		ASSERT_TRUE(result == 0);
+	}
+
+	TEST(gmock_expectations)
+	{
+		GMockTest mock;
+
+		EXPECT_CALL(mock, test1(_))
+		.Times(AtLeast(1));
+
+		coincident_add_thread(test_gmock, (void *)&mock);
+		coincident_set_time_limit(1000);
+
+		int result = coincident_run();
+		if (result != 0)
+			printf("ERROR: %s\n", coincident::IController::getInstance().getError());
+		ASSERT_TRUE(result == 0);
+	}
+
+	TEST(gmock_mock_in_function)
+	{
+		coincident_add_thread(test_gmock_mock_in_function, NULL);
+		coincident_set_time_limit(1000);
+
+		int result = coincident_run();
+		if (result != 0)
+			printf("ERROR: %s\n", coincident::IController::getInstance().getError());
 		ASSERT_TRUE(result == 0);
 	}
 }
