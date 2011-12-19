@@ -141,6 +141,14 @@ static int test_gmock_expect_in_function(void *p)
 	return 0;
 }
 
+static int test_crash(void *p)
+{
+	int (*v)() = (int (*)())p;
+
+	v();
+
+	return 0;
+}
 
 TESTSUITE(coincident)
 {
@@ -232,6 +240,18 @@ TESTSUITE(coincident)
 	TEST(gmock_mock_in_function)
 	{
 		coincident_add_thread(test_gmock_mock_in_function, NULL);
+		coincident_set_run_limit(1);
+
+		int result = coincident_run();
+		if (result != 0)
+			printf("ERROR: %s\n", coincident::IController::getInstance().getError());
+		ASSERT_TRUE(result == 0);
+	}
+
+	TEST(crash)
+	{
+		// Tests backtrace
+		coincident_add_thread(test_crash, NULL);
 		coincident_set_run_limit(1);
 
 		int result = coincident_run();
