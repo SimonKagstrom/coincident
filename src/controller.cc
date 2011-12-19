@@ -209,6 +209,8 @@ public:
 
 	bool run();
 
+	std::string backtraceToString(unsigned long *buf, int nValues);
+
 	class ExitHandler : public Controller::IFunctionHandler
 	{
 	public:
@@ -650,6 +652,23 @@ void Session::releaseLastThread()
 	m_lastThreadLoose = true;
 }
 
+std::string Session::backtraceToString(unsigned long *buf, int nValues)
+{
+	char str[20 * nValues];
+	char *p = str;
+	std::string out;
+
+	if (nValues == 0)
+		return std::string("");
+
+	for (int i = 0; i < nValues - 1; i++)
+		p += sprintf(p, "0x%08lx -> ", buf[i]);
+
+	sprintf(p, "0x%08lx -> ", buf[nValues - 1]);
+
+	return std::string(str);
+}
+
 bool Session::continueExecution()
 {
 	IPtrace::getInstance().loadRegisters(m_threads[m_curThread]->getRegs());
@@ -659,9 +678,13 @@ bool Session::continueExecution()
 	case ptrace_error:
 	case ptrace_crash:
 	{
-		m_owner.reportError("ptrace %s at %p",
+		unsigned long buf[8];
+		int n = m_threads[m_curThread]->backtrace(buf, 8);
+
+		m_owner.reportError("ptrace %s at %p (backtrace %s)",
 				ev.type == ptrace_error ? "error" : "crash",
-				ev.addr);
+				ev.addr,
+				backtraceToString(buf, n).c_str());
 		return false;
 	}
 
