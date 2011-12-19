@@ -205,7 +205,7 @@ TESTSUITE(coincident)
 		test_gmock_expect_in_function((void *)&mock);
 
 		coincident_add_thread(test_gmock_expect_in_function, (void *)&mock);
-		coincident_set_time_limit(1000);
+		coincident_set_run_limit(1);
 
 		int result = coincident_run();
 		if (result != 0)
@@ -221,7 +221,7 @@ TESTSUITE(coincident)
 		.Times(AtLeast(1));
 
 		coincident_add_thread(test_gmock, (void *)&mock);
-		coincident_set_time_limit(1000);
+		coincident_set_run_limit(1);
 
 		int result = coincident_run();
 		if (result != 0)
@@ -232,7 +232,7 @@ TESTSUITE(coincident)
 	TEST(gmock_mock_in_function)
 	{
 		coincident_add_thread(test_gmock_mock_in_function, NULL);
-		coincident_set_time_limit(1000);
+		coincident_set_run_limit(1);
 
 		int result = coincident_run();
 		if (result != 0)
