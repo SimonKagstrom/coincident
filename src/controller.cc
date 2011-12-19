@@ -184,6 +184,8 @@ public:
 
 	std::string m_error;
 
+	IElf *m_elf;
+
 	// Valid while non-NULL
 	Session *m_curSession;
 };
@@ -252,11 +254,11 @@ Controller::Controller()
 
 	m_curSession = NULL;
 
-	IElf *elf = IElf::open("/proc/self/exe");
-	panic_if (!elf,
+	m_elf = IElf::open("/proc/self/exe");
+	panic_if (!m_elf,
 			"Can't open executable");
 
-	elf->parse(this);
+	m_elf->parse(this);
 
 
 	// Setup function breakpoints
@@ -325,6 +327,16 @@ bool Controller::registerFunctionHandler(void *functionAddress,
 {
 	if (m_functions.find(functionAddress) == m_functions.end())
 		return false;
+
+	IFunction *fn = m_functions[functionAddress];
+	IElf::FunctionList_t allFunctions = m_elf->functionByName(fn->getName());
+
+	for (IElf::FunctionList_t::iterator it = allFunctions.begin();
+			it != allFunctions.end(); it++) {
+		IFunction *cur = *it;
+
+		m_functionHandlers[cur->getEntry()] = handler;
+	}
 
 	m_functionHandlers[functionAddress] = handler;
 
