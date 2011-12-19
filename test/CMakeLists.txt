@@ -30,4 +30,11 @@ link_directories (/home/ska/local/lib)
 
 add_executable (${TGT} ${${TGT}_SRCS})
 
-target_link_libraries(${TGT} crpcut udis86 elf gmock gtest)
+target_link_libraries(${TGT}
+	crpcut
+	dl
+	elf
+	gmock
+	gtest
+	pthread
+	udis86)

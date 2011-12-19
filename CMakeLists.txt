@@ -49,8 +49,10 @@ target_link_libraries(${TGT}
 	elf
 	gmock
 	gtest
+	pthread
 	${LIBCRPCUT_LIBRARIES}
-	${LIBUDIS86_LIBRARIES})
+	${LIBUDIS86_LIBRARIES}
+	dl)
 
 
 # Installation rules
