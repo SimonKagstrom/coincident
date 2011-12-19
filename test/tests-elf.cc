@@ -92,6 +92,6 @@ TEST(elffile, DEADLINE_REALTIME_MS(30000))
 	ASSERT_TRUE(listener.m_map[std::string("mockReadMemory")] > 0);
 	ASSERT_TRUE(listener.m_map[std::string("mockSetBreakpoint")] > 0);
 
-	ASSERT_NE(elf->functionByName("mockReadMemory"), 0);
-	ASSERT_EQ(elf->functionByName("mockReadMemoryNotFound"), 0);
+	ASSERT_FALSE(elf->functionByName("mockReadMemory").empty());
+	ASSERT_TRUE(elf->functionByName("mockReadMemoryNotFound").empty());
 }

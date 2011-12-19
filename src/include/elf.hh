@@ -1,6 +1,7 @@
 #pragma once
 
 #include <sys/types.h>
+#include <list>
 
 namespace coincident
 {
@@ -9,6 +10,8 @@ namespace coincident
 	class IElf
 	{
 	public:
+		typedef std::list<IFunction *> FunctionList_t;
+
 		class IFunctionListener
 		{
 		public:
@@ -20,7 +23,7 @@ namespace coincident
 
 		virtual bool parse(IFunctionListener *listener) = 0;
 
-		virtual IFunction *functionByName(const char *name) = 0;
+		virtual FunctionList_t functionByName(const char *name) = 0;
 
 		virtual IFunction *functionByAddress(void *addr) = 0;
 	};

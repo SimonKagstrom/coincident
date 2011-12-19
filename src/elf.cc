@@ -321,7 +321,7 @@ out_open:
 		return m_functionsByAddress[addr];
 	}
 
-	IFunction *functionByName(const char *name)
+	IElf::FunctionList_t functionByName(const char *name)
 	{
 		return m_functionsByName[std::string(name)];
 	}
@@ -341,7 +341,7 @@ private:
 		size_t m_size;
 	};
 
-	typedef std::map<std::string, Function *> FunctionsByName_t;
+	typedef std::map<std::string, IElf::FunctionList_t> FunctionsByName_t;
 	typedef std::map<void *, Function *> FunctionsByAddress_t;
 	typedef std::map<int, Function *> FixupMap_t;
 	typedef std::list<Segment> SegmentList_t;
@@ -439,7 +439,7 @@ private:
 				Elf32_Word size = s->st_size;
 				Function *fn = new Function(sym_name, (void *)addr, size, symType);
 
-				m_functionsByName[std::string(sym_name)] = fn;
+				m_functionsByName[std::string(sym_name)].push_back(fn);
 				// Needs fixup?
 				if (shdr->sh_type == SHT_DYNSYM && size == 0)
 					m_fixupFunctions[i] = fn;
