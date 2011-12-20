@@ -119,16 +119,6 @@ static int test_gmock_mock_in_function(void *p)
 	return 0;
 }
 
-static int test_gmock(void *p)
-{
-	GMockTest *mock = (GMockTest *)p;
-
-	mock->test1(5);
-	mock->test2();
-
-	return 0;
-}
-
 static int test_gmock_expect_in_function(void *p)
 {
 	GMockTest *mock = (GMockTest *)p;
@@ -213,22 +203,6 @@ TESTSUITE(coincident)
 		test_gmock_expect_in_function((void *)&mock);
 
 		coincident_add_thread(test_gmock_expect_in_function, (void *)&mock);
-		coincident_set_run_limit(1);
-
-		int result = coincident_run();
-		if (result != 0)
-			printf("ERROR: %s\n", coincident::IController::getInstance().getError());
-		ASSERT_TRUE(result == 0);
-	}
-
-	TEST(gmock_expectations)
-	{
-		GMockTest mock;
-
-		EXPECT_CALL(mock, test1(_))
-		.Times(AtLeast(1));
-
-		coincident_add_thread(test_gmock, (void *)&mock);
 		coincident_set_run_limit(1);
 
 		int result = coincident_run();
