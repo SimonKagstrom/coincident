@@ -13,6 +13,8 @@ set (CMAKE_MODULE_PATH  ${CMAKE_MODULE_PATH}
                         ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 find_package (LibUDIS86 REQUIRED)
 find_package (LibCRPCUT REQUIRED)
+find_package (GTest REQUIRED)
+find_package (GMock REQUIRED)
 
 set (LIB coincident)
 set (TGT self-test)
@@ -36,9 +38,13 @@ set (${TGT}_SRCS
 	self-test/main.cc
 	)
 
-include_directories (src/include/)
-include_directories (${LIBUDIS86_INCLUDE_DIRS})
-include_directories (${LIBCRPCUT_INCLUDE_DIRS})
+include_directories(
+	src/include/
+	${GMOCK_INCLUDE_DIRS}
+	${GTEST_INCLUDE_DIRS}
+	${LIBUDIS86_INCLUDE_DIRS}
+	${LIBCRPCUT_INCLUDE_DIRS}
+	)
 
 
 add_library (${LIB} ${${LIB}_SRCS})
@@ -47,11 +53,11 @@ add_executable (${TGT} ${${TGT}_SRCS})
 target_link_libraries(${TGT}
 	${LIB}
 	elf
-	gmock
-	gtest
 	pthread
 	${LIBCRPCUT_LIBRARIES}
 	${LIBUDIS86_LIBRARIES}
+	${GTEST_BOTH_LIBRARIES}
+	${GMOCK_BOTH_LIBRARIES}
 	dl)
 
 

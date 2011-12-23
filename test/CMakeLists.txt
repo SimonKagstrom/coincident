@@ -5,6 +5,8 @@ set (CMAKE_MODULE_PATH  ${CMAKE_MODULE_PATH}
                         ${CMAKE_CURRENT_SOURCE_DIR}/../cmake)
 find_package (LibUDIS86 REQUIRED)
 find_package (LibCRPCUT REQUIRED)
+find_package (GTest REQUIRED)
+find_package (GMock REQUIRED)
 
 # ====================================
 # project name and version
@@ -29,9 +31,14 @@ set (${TGT}_SRCS
 set (CMAKE_BUILD_TYPE debug)
 
 
-include_directories (../src/include/)
-include_directories (${LIBUDIS86_INCLUDE_DIRS})
-include_directories (${LIBCRPCUT_INCLUDE_DIRS})
+include_directories(
+	../src/include/
+	${GMOCK_INCLUDE_DIRS}
+	${GTEST_INCLUDE_DIRS}
+	${LIBUDIS86_INCLUDE_DIRS}
+	${LIBCRPCUT_INCLUDE_DIRS}
+	)
+
 link_directories (/home/ska/local/lib)
 
 add_executable (${TGT} ${${TGT}_SRCS})
@@ -39,9 +46,9 @@ add_executable (${TGT} ${${TGT}_SRCS})
 target_link_libraries(${TGT}
 	${LIBCRPCUT_LIBRARIES}
 	${LIBUDIS86_LIBRARIES}
+	${GTEST_BOTH_LIBRARIES}
+	${GMOCK_BOTH_LIBRARIES}
 	dl
 	elf
-	gmock
-	gtest
 	pthread
 	udis86)
