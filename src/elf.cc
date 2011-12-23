@@ -140,6 +140,7 @@ public:
 		m_elf = NULL;
 		m_listener = NULL;
 		m_filename = strdup(filename);
+		m_onlyDynsyms = false;
 	}
 
 	~Elf()
@@ -195,6 +196,9 @@ out_open:
 			struct dl_phdr_info *info, size_t size)
 	{
 		int phdr;
+
+		/* Only dynamic symbols for shared libraries */
+		m_onlyDynsyms = strlen(info->dlpi_name) != 0;
 
 		if (strlen(info->dlpi_name) != 0) {
 			free( (void *)m_filename );
@@ -278,7 +282,7 @@ out_open:
 			}
 
 			/* Handle symbols */
-			if (shdr->sh_type == SHT_SYMTAB)
+			if (shdr->sh_type == SHT_SYMTAB && m_onlyDynsyms == false)
 				handleSymtab(scn);
 			if (shdr->sh_type == SHT_DYNSYM)
 				handleDynsym(scn);
@@ -455,6 +459,7 @@ private:
 	FunctionsByAddress_t m_functionsByAddress;
 	FixupMap_t m_fixupFunctions;
 	SegmentList_t m_curSegments;
+	bool m_onlyDynsyms;
 
 	Elf *m_elf;
 	IFunctionListener *m_listener;
