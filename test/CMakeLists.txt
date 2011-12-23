@@ -50,5 +50,4 @@ target_link_libraries(${TGT}
 	${GMOCK_BOTH_LIBRARIES}
 	dl
 	elf
-	pthread
-	udis86)
+	pthread)
