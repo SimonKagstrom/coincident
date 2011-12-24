@@ -46,6 +46,7 @@ public:
 	{
 		pid_t child, who;
 		int status;
+		int myCpu = coin_get_current_cpu();
 
 		m_breakpointToAddrMap.clear();
 		m_addrToBreakpointMap.clear();
@@ -59,6 +60,8 @@ public:
 
 		if (child == 0) {
 			int res;
+
+			coin_set_cpu(getpid(), myCpu);
 
 			/* We're in the child, set me as traced */
 			res = ptrace(PTRACE_TRACEME, 0, 0, 0);

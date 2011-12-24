@@ -45,3 +45,7 @@ static inline void *xmalloc(size_t sz)
 
   return out;
 }
+
+int coin_get_current_cpu(void);
+
+void coin_set_cpu(pid_t pid, int cpu);

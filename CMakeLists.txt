@@ -32,8 +32,9 @@ set (${LIB}_SRCS
 	src/ptrace.cc
 	src/thread-ia32.cc
 	src/thread.cc
+	src/utils.cc
     )
-    
+
 set (${TGT}_SRCS
 	self-test/main.cc
 	)

@@ -12,7 +12,6 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <sched.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <map>
@@ -91,20 +90,6 @@ private:
 namespace coincident
 {
 	class Session;
-}
-
-static void forceProcessToCurrentCPU()
-{
-	// Switching CPU while running will cause icache
-	// conflicts. So let's just forbid that.
-
-	cpu_set_t *set = CPU_ALLOC(1);
-	panic_if (!set,
-			"Can't allocate CPU set!\n");
-	CPU_SET(sched_getcpu(), set);
-	panic_if (sched_setaffinity(getpid(), CPU_ALLOC_SIZE(1), set) < 0,
-			"Can't set CPU affinity. Coincident won't work");
-	CPU_FREE(set);
 }
 
 class Controller : public IController, IElf::IFunctionListener
@@ -241,7 +226,7 @@ public:
 
 Controller::Controller()
 {
-	forceProcessToCurrentCPU();
+	coin_set_cpu(getpid(), 0);
 
 	memset(m_threads, 0, sizeof(m_threads));
 	m_nThreads = 0;

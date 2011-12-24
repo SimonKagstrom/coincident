@@ -22,6 +22,7 @@ set (${TGT}_SRCS
     ../src/disassembly.cc
     ../src/elf.cc
     ../src/thread.cc
+    ../src/utils.cc
     main.cc
     mock-thread.cc
     tests-controller.cc
