@@ -539,6 +539,9 @@ bool Session::handle(IThread *cur, void *addr, const PtraceEvent &ev)
 	}
 
 	m_owner.m_breakpoints.erase(function->getEntry());
+	// Don't setup breakpoints in libraries
+	if (function->getType() == IFunction::SYM_DYNAMIC)
+		return true;
 
 	IFunction::ReferenceList_t refs = function->getMemoryStores();
 
