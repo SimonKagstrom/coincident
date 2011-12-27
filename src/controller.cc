@@ -795,6 +795,12 @@ int coincident_run(void)
 	return 0;
 }
 
+int g_coin_debug_mask;
+void coincident_set_debug_mask(int mask)
+{
+	g_coin_debug_mask = mask;
+}
+
 void coincident_init(void)
 {
 	// Loads the ELF symbols

@@ -51,6 +51,14 @@ extern void coincident_set_time_limit(int n_ms);
  */
 extern void coincident_set_bucket_selector(int *buckets, unsigned int n_buckets);
 
+/**
+ * Setup the debug mask.
+ *
+ * More bits means more output.
+ *
+ * @param mask the mask to set
+ */
+extern void coincident_set_debug_mask(int mask);
 
 /**
  * Start coincident!

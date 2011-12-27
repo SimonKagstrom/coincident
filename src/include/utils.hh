@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #define error(x...) do \
 { \
@@ -23,6 +24,29 @@
 	error(x); \
 	exit(1); \
 } while(0)
+
+enum debug_mask
+{
+	INFO_MSG   = 1,
+	PTRACE_MSG = 2,
+	ELF_MSG    = 4,
+	BP_MSG     = 8,
+};
+extern int g_coin_debug_mask;
+
+static inline void coin_debug(enum debug_mask dbg, const char *fmt, ...) __attribute__((format(printf,2,3)));
+
+static inline void coin_debug(enum debug_mask dbg, const char *fmt, ...)
+{
+	va_list ap;
+
+	if ((g_coin_debug_mask & dbg) == 0)
+		return;
+
+	va_start(ap, fmt);
+	vfprintf(stdout, fmt, ap);
+	va_end(ap);
+}
 
 #define panic_if(cond, x...) \
 		do { if ((cond)) panic(x); } while(0)
