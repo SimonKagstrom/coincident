@@ -517,6 +517,8 @@ bool Session::ExitHandler::handle(IThread *cur, void *addr, const PtraceEvent &e
 {
 	m_owner.removeThread(m_owner.m_curPid, m_owner.m_curThread);
 
+	coin_debug(BP_MSG, "Thread %p exited\n", cur);
+
 	if (m_owner.m_nThreads == 0)
 		return false;
 
@@ -542,11 +544,14 @@ bool Session::handle(IThread *cur, void *addr, const PtraceEvent &ev)
 	// Don't setup breakpoints in libraries
 	if (function->getType() == IFunction::SYM_DYNAMIC)
 		return true;
+	coin_debug(BP_MSG, "BP visited %s at %p\n",
+			function->getName(), function->getEntry());
 
 	IFunction::ReferenceList_t refs = function->getMemoryStores();
 
 	for (IFunction::ReferenceList_t::iterator it = refs.begin();
 			it != refs.end(); it++) {
+		coin_debug(BP_MSG, "BP set at %p\n", *it);
 		if (ptrace.setBreakpoint(*it) < 0)
 			error("Can't set breakpoint???");
 
@@ -661,6 +666,9 @@ bool Session::continueExecution()
 {
 	IPtrace::getInstance().loadRegisters(m_threads[m_curThread]->getRegs());
 	const PtraceEvent ev = IPtrace::getInstance().continueExecution();
+
+	coin_debug(PTRACE_MSG, "PT event at %p: id/type: 0x%08x/%d\n",
+			ev.addr, ev.eventId, ev.type);
 
 	switch (ev.type) {
 	case ptrace_error:

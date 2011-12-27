@@ -200,6 +200,7 @@ out_open:
 			free( (void *)m_filename );
 			m_filename = strdup(info->dlpi_name);
 		}
+		coin_debug(ELF_MSG, "ELF parsing %s\n", m_filename);
 
 		m_curSegments.clear();
 		for (phdr = 0; phdr < info->dlpi_phnum; phdr++) {

@@ -74,6 +74,8 @@ public:
 			return 0;
 		}
 
+		coin_debug(INFO_MSG, "INFO: Forked child %d\n", child);
+
 		/* Wait for the initial stop */
 		who = waitpid(child, &status, 0);
 		if (who < 0) {
