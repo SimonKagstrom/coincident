@@ -1,6 +1,7 @@
 #include "test.hh"
 
 #include <elf.hh>
+#include <coincident/coincident.h>
 #include <function.hh>
 #include "mock-ptrace.hh"
 
@@ -81,6 +82,7 @@ TEST(elffile, DEADLINE_REALTIME_MS(30000))
 	EXPECT_CALL(ptraceInstance, readMemory(_, _,_))
 		.WillRepeatedly(Invoke(mockReadMemory));
 
+	coincident_set_debug_mask(0xff);
 	// Don't run the unit test as root!
 	sprintf(filename, "/proc/self/exe", crpcut::get_start_dir());
 	elf = IElf::open(filename);
