@@ -209,6 +209,9 @@ out_open:
 			if (cur->p_type != PT_LOAD)
 				continue;
 
+			coin_debug(ELF_MSG, "ELF seg 0x%08x -> 0x%08x...0x%08x\n",
+					cur->p_paddr, info->dlpi_addr + cur->p_vaddr,
+					info->dlpi_addr + cur->p_vaddr + cur->p_memsz);
 			m_curSegments.push_back(Segment(cur->p_paddr, info->dlpi_addr + cur->p_vaddr,
 					cur->p_memsz, cur->p_align));
 		}
