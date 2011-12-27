@@ -133,6 +133,16 @@ static int test_gmock_expect_in_function(void *p)
 
 static int test_crash(void *p)
 {
+	void *a = malloc(1025);
+
+	ASSERT_TRUE(a);
+	free(a);
+
+	return 0;
+}
+
+static int test_malloc(void *p)
+{
 	int (*v)() = (int (*)())p;
 
 	v();
@@ -231,6 +241,18 @@ TESTSUITE(coincident)
 		int result = coincident_run();
 		if (result != 0)
 			printf("ERROR: %s\n", coincident::IController::getInstance().getError());
+		ASSERT_TRUE(result == 0);
+	}
+
+	TEST(malloc)
+	{
+		if (crpcut::get_parameter("verbose"))
+			coincident_set_debug_mask(0xff);
+
+		coincident_add_thread(test_malloc, NULL);
+		coincident_set_run_limit(1);
+
+		int result = coincident_run();
 		ASSERT_TRUE(result == 0);
 	}
 }
