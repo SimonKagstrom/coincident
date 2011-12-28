@@ -674,13 +674,18 @@ bool Session::continueExecution()
 	case ptrace_error:
 	case ptrace_crash:
 	{
+		char regs[1024];
 		unsigned long buf[8];
 		int n = m_threads[m_curThread]->backtrace(buf, 8);
 
-		m_owner.reportError("ptrace %s at %p (backtrace %s)",
+		m_threads[m_curThread]->dumpRegs(regs);
+		coin_debug(PTRACE_MSG, "PT error at %p. backtrace %s\n%s",
+				ev.addr, backtraceToString(buf, n).c_str(), regs);
+		m_owner.reportError("ptrace %s at %p (backtrace %s)\n%s",
 				ev.type == ptrace_error ? "error" : "crash",
 				ev.addr,
-				backtraceToString(buf, n).c_str());
+				backtraceToString(buf, n).c_str(),
+				regs);
 		return false;
 	}
 
