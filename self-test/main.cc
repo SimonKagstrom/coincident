@@ -131,7 +131,7 @@ static int test_gmock_expect_in_function(void *p)
 	return 0;
 }
 
-static int test_crash(void *p)
+static int test_malloc(void *p)
 {
 	void *a = malloc(1025);
 
@@ -141,7 +141,7 @@ static int test_crash(void *p)
 	return 0;
 }
 
-static int test_malloc(void *p)
+static int test_crash(void *p)
 {
 	int (*v)() = (int (*)())p;
 
