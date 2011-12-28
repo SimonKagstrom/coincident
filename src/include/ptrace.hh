@@ -60,6 +60,10 @@ namespace coincident
 
 		virtual void saveRegisters(void *regs) = 0;
 
+		virtual void loadFpRegisters(void *regs) = 0;
+
+		virtual void saveFpRegisters(void *regs) = 0;
+
 		/**
 		 * Step over to the next instruction.
 		 *

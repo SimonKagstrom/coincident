@@ -160,6 +160,16 @@ public:
 		ptrace(PTRACE_SETREGS, m_child, 0, regs);
 	}
 
+	void saveFpRegisters(void *regs)
+	{
+		ptrace(PTRACE_GETFPXREGS, m_child, 0, regs);
+	}
+
+	void loadFpRegisters(void *regs)
+	{
+		ptrace(PTRACE_SETFPXREGS, m_child, 0, regs);
+	}
+
 	void singleStep()
 	{
 		struct user_regs_struct regs;

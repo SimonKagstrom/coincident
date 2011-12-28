@@ -69,12 +69,15 @@ public:
 		ptrace.saveRegisters(&m_regs);
 		// The breakpoint points to the instruction AFTER the breakpoint
 		m_regs.eip--;
+
+		ptrace.saveFpRegisters(&m_fpregs);
 	}
 
 	void loadRegisters()
 	{
 		IPtrace &ptrace = IPtrace::getInstance();
 
+		ptrace.loadFpRegisters(&m_fpregs);
 		ptrace.loadRegisters(&m_regs);
 	}
 
@@ -181,12 +184,15 @@ private:
 				: : [reg]"r"(&m_regs.xfs) : "memory" );
 		asm volatile("mov    %%gs, 0(%[reg])\n"
 				: : [reg]"r"(&m_regs.xgs) : "memory" );
+
+		memset(&m_fpregs, 0, sizeof(m_fpregs));
 	}
 
 
 	uint8_t *m_stack;
 	uint8_t *m_stackStart;
 	struct user_regs_struct m_regs;
+	struct user_fpxregs_struct m_fpregs;
 
 	bool m_blocked;
 };

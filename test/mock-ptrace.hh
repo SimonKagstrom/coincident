@@ -19,6 +19,8 @@ public:
 	MOCK_METHOD0(forkAndAttach, int());
 	MOCK_METHOD1(loadRegisters, void(void *regs));
 	MOCK_METHOD1(saveRegisters, void(void *regs));
+	MOCK_METHOD1(loadFpRegisters, void(void *regs));
+	MOCK_METHOD1(saveFpRegisters, void(void *regs));
 	MOCK_METHOD0(singleStep, void());
 	MOCK_METHOD0(continueExecution, const PtraceEvent());
 	MOCK_METHOD0(kill, void());
