@@ -229,6 +229,8 @@ public:
 				return out;
 			}
 			// No, deliver it directly
+			coin_debug(PTRACE_MSG, "PT signal %d at %p\n",
+					WSTOPSIG(status), out.addr);
 			ptrace(PTRACE_CONT, who, 0, WSTOPSIG(status));
 		}
 		// Thread died?
