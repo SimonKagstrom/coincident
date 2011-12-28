@@ -115,6 +115,21 @@ public:
 		return n;
 	}
 
+	void dumpRegs(char *buf)
+	{
+		IPtrace::getInstance().saveRegisters(&m_regs);
+		sprintf(buf,
+				"eax 0x%08lx  ebx 0x%08lx  ecx 0x%08lx  edx 0x%08lx\n"
+				"esp 0x%08lx  ebp 0x%08lx  esi 0x%08lx  edi 0x%08lx\n"
+				"eip 0x%08lx  eflags 0x%04lx\n"
+				"cs 0x%04lx  ss 0x%04lx  ds 0x%04lx  es 0x%04lx  fs 0x%04lx  gs 0x%04lx\n",
+				m_regs.eax, m_regs.ebx, m_regs.ecx, m_regs.edx,
+				m_regs.esp, m_regs.ebp, m_regs.esi, m_regs.edi,
+				m_regs.eip, m_regs.eflags,
+				m_regs.xcs, m_regs.xss, m_regs.xds, m_regs.xes, m_regs.xfs, m_regs.xgs
+				);
+	}
+
 	void block()
 	{
 		m_blocked = true;

@@ -47,6 +47,8 @@ namespace coincident
 		 */
 		virtual int backtrace(unsigned long *buf, int maxValues) = 0;
 
+		virtual void dumpRegs(char *buf) = 0;
+
 
 		virtual void block() = 0;
 
