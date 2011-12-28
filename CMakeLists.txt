@@ -59,6 +59,7 @@ target_link_libraries(${TGT}
 	${LIBUDIS86_LIBRARIES}
 	${GTEST_BOTH_LIBRARIES}
 	${GMOCK_BOTH_LIBRARIES}
+	rt
 	dl)
 
 
