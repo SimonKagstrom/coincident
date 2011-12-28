@@ -34,7 +34,7 @@ public:
 
 	virtual ~Function()
 	{
-		delete m_name;
+		free((void *)m_name);
 		delete m_data;
 	}
 
