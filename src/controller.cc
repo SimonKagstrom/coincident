@@ -506,7 +506,7 @@ void Session::removeThread(int pid, int which)
 		m_curThread = 0;
 
 	if (m_nThreads > 0)
-		IPtrace::getInstance().loadRegisters(m_threads[0]->getRegs());
+		m_threads[0]->loadRegisters();
 }
 
 Session::ExitHandler::ExitHandler(Session &owner) : m_owner(owner)
@@ -664,7 +664,7 @@ std::string Session::backtraceToString(unsigned long *buf, int nValues)
 
 bool Session::continueExecution()
 {
-	IPtrace::getInstance().loadRegisters(m_threads[m_curThread]->getRegs());
+	m_threads[m_curThread]->loadRegisters();
 	const PtraceEvent ev = IPtrace::getInstance().continueExecution();
 
 	coin_debug(PTRACE_MSG, "PT event at %p: id/type: 0x%08x/%d\n",

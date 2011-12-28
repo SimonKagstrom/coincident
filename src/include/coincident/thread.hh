@@ -7,9 +7,6 @@ namespace coincident
 	class IThread
 	{
 	public:
-		// getRegs should only be used by Session
-		friend class Session;
-
 		friend class ThreadFactory;
 
 		/**
@@ -36,6 +33,8 @@ namespace coincident
 
 		virtual void saveRegisters() = 0;
 
+		virtual void loadRegisters() = 0;
+
 		virtual void setPc(void *addr) = 0;
 
 		virtual void *getPc() = 0;
@@ -61,8 +60,6 @@ namespace coincident
 				int (*fn)(void *), void *arg);
 
 		static void releaseThread(IThread *thread);
-
-		virtual void *getRegs() = 0;
 	};
 
 

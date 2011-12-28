@@ -41,11 +41,6 @@ public:
 		ON_CALL(*this, unBlock())
 			.WillByDefault(Invoke(&m_fake, &FakeThread::myUnBlock));
 
-		EXPECT_CALL(*this, getRegs())
-				.Times(AnyNumber())
-				.WillRepeatedly(Return((void *)m_regs))
-				;
-
 		EXPECT_CALL(*this, stepOverBreakpoint())
 				.Times(AnyNumber());
 		EXPECT_CALL(*this, isBlocked())
@@ -56,9 +51,9 @@ public:
 			.Times(AnyNumber());
 	}
 
-	MOCK_METHOD0(getRegs, void *());
 	MOCK_METHOD0(stepOverBreakpoint, void());
 	MOCK_METHOD0(saveRegisters, void());
+	MOCK_METHOD0(loadRegisters, void());
 	MOCK_METHOD1(setPc, void(void *));
 	MOCK_METHOD0(getPc, void *());
 	MOCK_METHOD1(getArgument,unsigned long(int n));

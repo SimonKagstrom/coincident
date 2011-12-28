@@ -40,11 +40,6 @@ public:
 		free(m_stackStart);
 	}
 
-	void *getRegs()
-	{
-		return (void *)&m_regs;
-	}
-
 	unsigned long getArgument(int n)
 	{
 		uint8_t *sp = (uint8_t *)m_regs.esp;
@@ -74,6 +69,13 @@ public:
 		ptrace.saveRegisters(&m_regs);
 		// The breakpoint points to the instruction AFTER the breakpoint
 		m_regs.eip--;
+	}
+
+	void loadRegisters()
+	{
+		IPtrace &ptrace = IPtrace::getInstance();
+
+		ptrace.loadRegisters(&m_regs);
 	}
 
 	void stepOverBreakpoint()
